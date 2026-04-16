@@ -63,6 +63,13 @@ This aligns with standing governance (2026-04-16) requiring all LLM output pass 
 
 ---
 
+### 2026-04-16T16:58:54Z: User directive — features list sync
+**By:** Espen Berglund (via Copilot)  
+**What:** Whenever a new feature is implemented, the features list at /features (Features.tsx) must be updated to include the new feature.  
+**Why:** User request — captured for team memory
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus
