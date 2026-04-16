@@ -72,7 +72,7 @@ describe("App", () => {
   it("renders the submit button", () => {
     renderApp();
     expect(
-      screen.getByRole("button", { name: /motivasjon/i }),
+      screen.getByRole("button", { name: /start mission/i }),
     ).toBeInTheDocument();
   });
 
@@ -92,17 +92,17 @@ describe("App", () => {
 
   it("renders personality buttons", () => {
     renderApp();
-    expect(screen.getByRole("button", { name: "😜 Useriøs" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "🧐 Seriøs" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "⚽ Sport" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "🤓 Nerd" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Useriøs Litt kaos, mye sjarm" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Seriøs Fokus og struktur" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sport Full energi" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Nerd Presisjon og fakta" })).toBeInTheDocument();
   });
 
   it("shows motivation result after valid submission", async () => {
     renderApp();
     const input = screen.getByRole("textbox");
     fireEvent.change(input, { target: { value: "lese nyheter" } });
-    fireEvent.click(screen.getByRole("button", { name: /motivasjon/i }));
+    fireEvent.click(screen.getByRole("button", { name: /start mission/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/Du klarer det/i)).toBeInTheDocument();
@@ -112,7 +112,7 @@ describe("App", () => {
   it("does not crash on empty submit", () => {
     renderApp();
     expect(() => {
-      fireEvent.click(screen.getByRole("button", { name: /motivasjon/i }));
+      fireEvent.click(screen.getByRole("button", { name: /start mission/i }));
     }).not.toThrow();
   });
 
@@ -121,10 +121,41 @@ describe("App", () => {
     fireEvent.change(screen.getByRole("textbox"), {
       target: { value: "hackathon" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /motivasjon/i }));
+    fireEvent.click(screen.getByRole("button", { name: /start mission/i }));
 
     await waitFor(() => {
       expect(screen.getByText("🚀")).toBeInTheDocument();
     });
+  });
+
+  it("renders the chaos dashboard route", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          locationName: "Gran Canaria",
+          latitude: 27.9206,
+          longitude: -15.5477,
+          temperature: 25,
+          windSpeed: 12,
+          precipitation: 0,
+          weatherCode: 0,
+          summary: "Klar himmel, nesten mistenkelig bra forhold.",
+          chaosLevel: 18,
+          verdict: "Optimal dag for å late som du har full kontroll.",
+          recommendedAction: "Del oppgaven og sett en tydelig første milepæl.",
+        }),
+      }),
+    );
+
+    render(
+      <MemoryRouter initialEntries={["/chaos"]}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText(/Chaos Dashboard/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Gran Canaria/i)).toBeInTheDocument();
   });
 });
