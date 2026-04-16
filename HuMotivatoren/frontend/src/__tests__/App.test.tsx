@@ -1,5 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { act } from 'react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import App from '../App';
@@ -12,97 +11,140 @@ function renderApp(initialEntries: string[] = ['/']) {
   );
 }
 
-function mockRandomSequence(values: number[]) {
-  const sequence = [...values];
+function mockFetch() {
+  return vi.fn().mockImplementation(async (input: string | URL | Request) => {
+    const url = String(input);
 
-  vi.spyOn(Math, 'random').mockImplementation(() => sequence.shift() ?? 0.9);
+    if (url.includes('/api/motivate')) {
+      return {
+        ok: true,
+        json: async () => ({
+          quote: 'Keep going.',
+          fact: 'You can do hard things.',
+          tip: 'Start with the smallest step.',
+          emoji: '✨',
+          personality: 'silly',
+        }),
+      };
+    }
+
+    if (url.includes('/api/cowsay')) {
+      return {
+        ok: true,
+        json: async () => ({ art: 'moo' }),
+      };
+    }
+
+    if (url.includes('/api/weather/chaos')) {
+      return {
+        ok: true,
+        json: async () => ({
+          locationName: 'Gran Canaria',
+          latitude: 28.1,
+          longitude: -15.4,
+          temperature: 21,
+          windSpeed: 8,
+          precipitation: 0,
+          weatherCode: 0,
+          summary: 'Sunny chaos',
+          chaosLevel: 42,
+          verdict: 'Looks manageable.',
+          recommendedAction: 'Keep moving.',
+        }),
+      };
+    }
+
+    if (url.includes('/api/development-history')) {
+      return {
+        ok: true,
+        json: async () => [],
+      };
+    }
+
+    if (url.includes('/api/word-of-your-mouth/signal')) {
+      return {
+        ok: true,
+        json: async () => ({
+          transmission: 'ok',
+          insight: 'ok',
+          source: 'fallback',
+          receivedAt: new Date().toISOString(),
+        }),
+      };
+    }
+
+    return {
+      ok: true,
+      json: async () => ({}),
+    };
+  });
 }
 
 describe('App', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    vi.stubGlobal('fetch', mockFetch());
   });
 
   afterEach(() => {
-    vi.useRealTimers();
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
-  it('renders the Snake demo and score', () => {
-    mockRandomSequence([0.9, 0.9]);
-
+  it('renders the restored home experience with ambient Snake behind it', () => {
     renderApp();
 
-    expect(screen.getByText(/Nyan Snake/i)).toBeInTheDocument();
-    expect(screen.getByTestId('snake-board')).toHaveAttribute('data-score', '0');
-    expect(screen.getByTestId('snake-board')).toHaveAttribute('data-direction', 'right');
+    expect(screen.getByRole('heading', { name: /HuMotivatoren/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Oppdrag/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Start mission/i })).toBeDisabled();
+    expect(screen.getByTestId('snake-ambience')).toBeInTheDocument();
   });
 
-  it('prevents reversing directly into itself', () => {
-    mockRandomSequence([0.9, 0.9]);
+  it('preserves the main utility routes', async () => {
+    const routes = [
+      ['/features', /Features/i],
+      ['/chaos', /Chaos Dashboard/i],
+      ['/development_history', /development_history/i],
+      ['/word_of_your_mouth', /word_of_your_mouth/i],
+    ] as const;
 
-    renderApp();
-
-    const board = screen.getByTestId('snake-board');
-
-    fireEvent.keyDown(window, { key: 'ArrowLeft' });
-    expect(board).toHaveAttribute('data-direction', 'right');
-
-    fireEvent.keyDown(window, { key: 'ArrowUp' });
-    expect(board).toHaveAttribute('data-direction', 'up');
+    for (const [path, heading] of routes) {
+      const { unmount } = renderApp([path]);
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
+      });
+      unmount();
+    }
   });
 
-  it('grows when eating food', async () => {
-    mockRandomSequence([0.5, 0.5, 0.8, 0.8]);
-
+  it('submits the motivation form with the selected tone', async () => {
     renderApp();
 
-    const board = screen.getByTestId('snake-board');
-
-    expect(board).toHaveAttribute('data-length', '3');
-
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(150);
-    });
-
-    expect(board).toHaveAttribute('data-score', '1');
-    expect(board).toHaveAttribute('data-length', '4');
-  });
-
-  it('shows game over after a collision and can restart', async () => {
-    mockRandomSequence([0.9, 0.1]);
-
-    renderApp();
-
-    const board = screen.getByTestId('snake-board');
-
-    fireEvent.keyDown(window, { key: 'ArrowUp' });
-
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(150 * 8);
-    });
-
-    expect(board).toHaveAttribute('data-status', 'gameover');
-    expect(screen.getByText(/game over/i)).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /restart game/i }));
-
-    expect(board).toHaveAttribute('data-status', 'playing');
-    expect(board).toHaveAttribute('data-score', '0');
-  });
-
-  it("auto-triggers motivation when selecting a category", async () => {
-    renderApp();
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "lese nyheter" } });
-    fireEvent.click(screen.getByRole("button", { name: "Sport Full energi" }));
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'lese nyheter' } });
+    fireEvent.click(screen.getByRole('button', { name: /Sport/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Start mission/i }));
 
     await waitFor(() => {
       expect(vi.mocked(fetch)).toHaveBeenCalledWith(
-        "/api/motivate",
+        '/api/motivate',
         expect.objectContaining({
-          method: "POST",
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ task: 'lese nyheter', personality: 'sports' }),
         }),
       );
     });
+
+    expect(await screen.findByText(/keep going/i)).toBeInTheDocument();
+  });
+
+  it('does not steal arrow keys from the home form input', async () => {
+    renderApp();
+
+    const input = screen.getByRole('textbox');
+    input.focus();
+    fireEvent.keyDown(input, { key: 'ArrowLeft' });
+
+    expect(input).toHaveFocus();
+    expect(screen.getByTestId('snake-board')).toHaveAttribute('data-direction', 'right');
   });
 });
