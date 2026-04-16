@@ -11,3 +11,14 @@ export interface MotivationResponse {
   emoji: string;
   personality: string;
 }
+
+export interface DevelopmentHistoryEntry {
+  hash: string;
+  title: string;
+  date: string;
+  author: string;
+}
+
+export interface DevelopmentHistoryDetail extends DevelopmentHistoryEntry {
+  content: string;
+}
