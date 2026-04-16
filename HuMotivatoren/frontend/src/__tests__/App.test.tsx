@@ -90,21 +90,23 @@ describe('App', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders the restored home experience with ambient Snake behind it', () => {
+  it('renders the home experience without ambient Snake board', () => {
     renderApp();
 
     expect(screen.getByRole('heading', { name: /HuMotivatoren/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/Oppdrag/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Start mission/i })).toBeDisabled();
-    expect(screen.getByTestId('snake-ambience')).toBeInTheDocument();
+    expect(screen.queryByTestId('snake-ambience')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('snake-board')).not.toBeInTheDocument();
   });
 
-  it('preserves the main utility routes', async () => {
+  it('preserves the main utility routes including snake', async () => {
     const routes = [
       ['/features', /Features/i],
       ['/chaos', /Chaos Dashboard/i],
       ['/development_history', /development_history/i],
       ['/word_of_your_mouth', /word_of_your_mouth/i],
+      ['/snake', /snake ambient/i],
     ] as const;
 
     for (const [path, heading] of routes) {
@@ -137,14 +139,25 @@ describe('App', () => {
     expect(await screen.findByText(/keep going/i)).toBeInTheDocument();
   });
 
-  it('does not steal arrow keys from the home form input', async () => {
+  it('includes navigation link to snake feature from home', () => {
     renderApp();
 
-    const input = screen.getByRole('textbox');
-    input.focus();
-    fireEvent.keyDown(input, { key: 'ArrowLeft' });
+    expect(screen.getByRole('link', { name: /snake/i })).toHaveAttribute('href', '/snake');
+  });
 
-    expect(input).toHaveFocus();
-    expect(screen.getByTestId('snake-board')).toHaveAttribute('data-direction', 'right');
+  it('renders dedicated snake route with accessible board and instructions', () => {
+    renderApp(['/snake']);
+
+    expect(screen.getByRole('heading', { name: /snake ambient/i })).toBeInTheDocument();
+    expect(screen.getByRole('grid', { name: /snake board/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/keyboard instructions/i)).toBeInTheDocument();
+    expect(screen.getByRole('status')).toBeInTheDocument();
+  });
+
+  it('includes navigation link to snake feature from features page', () => {
+    renderApp(['/features']);
+
+    expect(screen.getByRole('link', { name: /snake ambient/i })).toHaveAttribute('href', '/snake');
+    expect(screen.getByText(/gå til \/snake/i)).toBeInTheDocument();
   });
 });
