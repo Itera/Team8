@@ -1,22 +1,20 @@
-import express from 'express';
-import cors from 'cors';
 import dotenv from 'dotenv';
-import { motivateRouter } from './routes/motivate.js';
-import { healthRouter } from './routes/health.js';
-
 dotenv.config();
 
-const app = express();
+import app from './app.js';
+
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
-app.use(express.json());
-
-app.use('/api/motivate', motivateRouter);
-app.use('/api/health', healthRouter);
-
 app.listen(PORT, () => {
-  console.log(`🚀 HuMotivatoren backend running on http://localhost:${PORT}`);
+  console.log(`
+🚀 HuMotivatoren Backend
+━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Server running on http://localhost:${PORT}
+📍 Health check: http://localhost:${PORT}/api/health
+📍 Motivate API: POST http://localhost:${PORT}/api/motivate
+
+Ready to motivate! 💪
+  `);
 });
 
 export default app;

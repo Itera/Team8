@@ -1,12 +1,13 @@
 export interface MotivationRequest {
   task: string;
-  personality?: string;
+  personality?: 'serious' | 'silly' | 'sports' | 'nerdy';
 }
 
 export interface MotivationResponse {
-  motivation: string;
-  humor?: string;
-  funFact?: string;
+  quote: string;
+  fact: string;
+  tip: string;
   gifUrl?: string;
-  source?: string;
+  emoji: string;
+  personality: string;
 }
