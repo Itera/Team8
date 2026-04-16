@@ -7,6 +7,7 @@
 - **2026-04-16:** All LLM output must pass content safety check aligned with Itera's values before reaching frontend.
 - **2026-04-16:** Azure OpenAI (gpt-4o-mini) used for LLM quote generation. Fallback to hardcoded responses when API unavailable. See ADR in decisions/inbox/amy-adr-llm-azure-openai.md
 - **2026-04-16:** App must be demo-ready on big screen in 2 minutes. Visual appeal is a first-class requirement.
+- **2026-04-16:** Project docs were refreshed to match the current app state. Keep README, TESTING.md, DEVELOPMENT_HISTORY_PLAN.md, and DONOTREADME.md aligned with implemented behavior and preserve their existing tone/structure.
 
 ## Architectural Decisions & ADRs
 

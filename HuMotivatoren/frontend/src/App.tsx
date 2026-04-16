@@ -91,16 +91,14 @@ function App() {
     }
   }, [task]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const triggerMotivation = async (nextPersonality: PersonalityOption = personality) => {
     if (!task.trim()) return;
 
     setLoading(true);
     setError(null);
-    setResult(null);
 
     try {
-      const request: MotivationRequest = { task: task.trim(), personality };
+      const request: MotivationRequest = { task: task.trim(), personality: nextPersonality };
       setLatestTask(task.trim());
 
       const response = await fetch('/api/motivate', {
@@ -122,6 +120,16 @@ function App() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await triggerMotivation();
+  };
+
+  const handlePersonalitySelect = async (nextPersonality: PersonalityOption) => {
+    setPersonality(nextPersonality);
+    await triggerMotivation(nextPersonality);
+  };
+
   return (
     <Routes>
       <Route path="/development_history/:hash" element={<ChangeDetail />} />
@@ -141,6 +149,7 @@ function App() {
             result={result}
             error={error}
             handleSubmit={handleSubmit}
+            handlePersonalitySelect={handlePersonalitySelect}
             catImageUrl={catImageUrl}
             catFact={catFact}
             catBreed={catBreed}
@@ -162,6 +171,7 @@ interface HomeProps {
   result: MotivationResponse | null;
   error: string | null;
   handleSubmit: (e: React.FormEvent) => void;
+  handlePersonalitySelect: (personality: PersonalityOption) => void;
   catImageUrl: string | null;
   catFact: string | null;
   catBreed: { name: string; temperament: string; description: string } | null;
@@ -178,6 +188,7 @@ function Home({
   result,
   error,
   handleSubmit,
+  handlePersonalitySelect,
   catImageUrl,
   catFact,
   catBreed,
@@ -309,7 +320,7 @@ function Home({
                 <button
                   key={value}
                   type="button"
-                  onClick={() => setPersonality(value)}
+                  onClick={() => handlePersonalitySelect(value)}
                   className={`home-personality ${personality === value ? 'active' : ''}`}
                 >
                   <strong>{label}</strong>

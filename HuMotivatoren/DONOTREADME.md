@@ -4,12 +4,12 @@
 
 In Team8, we do not begin with requirements. We begin with weather.  
 If the coffee tastes like destiny and the playlist is somewhere between synthwave and panic, then the sprint has already started.  
-Lalaila opens the laptop and says, "This feature should feel soft but dangerous."  
-marcin nods like this is a measurable metric.  
-emil. writes "TODO: align cosmic intent with API response."  
-espen starts a timer called "focus mode" and immediately ignores it.  
-mia renames the branch three times to improve the aura.  
-christofer says nothing, but somehow deploys to staging.
+Amy opens the laptop and says, "This feature should feel soft but dangerous."  
+Jake nods like this is a measurable metric.  
+Rosa writes "TODO: align cosmic intent with API response."  
+Charles starts a timer called "focus mode" and immediately ignores it.  
+Scribe renames the branch three times to improve the aura.  
+Ralph says nothing, but somehow keeps the board moving.
 
 That is vibe coding.  
 Not coding for correctness.  
@@ -35,12 +35,12 @@ In Team8, architecture is discovered in prod, like fossils.
 
 Yesterday:
 
-- marcin refactored a function because "it looked at me wrong."
-- mia created a design token named "almost-red."
-- espen removed 300 lines of code and called it spiritual decluttering.
-- Lalaila added those 300 lines back, but with comments that sounded like poetry.
-- christofer fixed a bug by changing a variable name to "finalFinalActual."
-- emil. opened a PR titled "small cleanup," touched 47 files, and disappeared.
+- Jake refactored a function because "it looked at me wrong." 
+- Amy created a design token named "almost-red." 
+- Rosa removed 300 lines of code and called it spiritual decluttering. 
+- Charles added those 300 lines back, but with comments that sounded like poetry. 
+- Scribe fixed a bug by changing a variable name to "finalFinalActual." 
+- Ralph opened a PR titled "small cleanup," touched 47 files, and disappeared.
 
 Today:
 
@@ -76,10 +76,10 @@ Our QA process has four stages:
 
 1. Click around quickly.
 2. Open DevTools and pretend to understand the warning.
-3. Ask christofer if this is "normal."
-4. If christofer shrugs, mark as known behavior.
+3. Ask Charles if this is "normal."
+4. If Charles shrugs, mark as known behavior.
 
-Sometimes mia finds edge cases by doing things no human would do, like opening five tabs, changing language mid-checkout, rotating a phone upside down, and breathing near the keyboard.  
+Sometimes Amy finds edge cases by doing things no human would do, like opening five tabs, changing language mid-checkout, rotating a phone upside down, and breathing near the keyboard.  
 If it survives that, it is production-grade enough for Friday.
 
 ## The Bullshit Vibe Coding Manifesto
@@ -91,12 +91,12 @@ We, Team8, believe:
 - sleep is the enemy of "just one more tweak,"
 - and "just one more tweak" is the heartbeat of progress.
 
-Lalaila brings narrative.  
-marcin brings speed.  
-emil. brings mysterious commits at impossible hours.  
-espen brings ruthless deletion.  
-mia brings taste and strategic chaos.  
-christofer brings calm and fixes everyone else forgot to admit.
+Amy brings narrative.  
+Jake brings speed.  
+Rosa brings mysterious commits at impossible hours.  
+Charles brings ruthless deletion.  
+Scribe brings taste and strategic chaos.  
+Ralph brings calm and fixes everyone else forgot to admit.
 
 Together, we build products that should not work as well as they do.  
 They are held together by sticky notes, courage, and one helper function nobody is allowed to touch.

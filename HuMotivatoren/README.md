@@ -30,16 +30,19 @@ HuMotivatoren/
 └── tests/       — Vitest test suites
 ```
 
-- **Frontend** sends user input to backend via `POST /api/motivate`
-- **Backend** calls an LLM and open APIs, then returns motivation + humor
+- **Frontend** routes between the home screen, `/chaos`, `/development_history`, and `/word_of_your_mouth`
+- **Backend** serves motivation plus supporting endpoints for health, cowsay, chaos weather, mouth-word, and development history
 - **Environment variables** in `.env` (never committed) — see `.env.example`
 
 ## 🔑 Environment Variables
 
 | Variable        | Description                        |
 | --------------- | ---------------------------------- |
-| `LLM_API_KEY`   | API key for the LLM provider       |
-| `LLM_BASE_URL`  | LLM API base URL                   |
+| `AZURE_OPENAI_ENDPOINT` | Azure OpenAI resource endpoint |
+| `AZURE_OPENAI_DEPLOYMENT` | Azure OpenAI deployment name |
+| `AZURE_OPENAI_API_VERSION` | Azure OpenAI API version |
+| `AZURE_OPENAI_API_KEY` | Azure OpenAI API key |
+| `ALLOWED_ORIGINS` | Comma-separated CORS allowlist |
 | `GIPHY_API_KEY`  | Giphy API key for GIF integration  |
 | `NEWS_API_KEY`   | NewsAPI key for fun facts           |
 | `PORT`          | Backend server port (default 3001) |
@@ -49,9 +52,9 @@ HuMotivatoren/
 | Name      | Role             |
 | --------- | ---------------- |
 | **Amy**   | Lead / Architect |
-| **Jake**  | Frontend         |
-| **Rosa**  | Backend          |
-| **Charles** | Tester         |
+| **Jake**  | Frontend Dev    |
+| **Rosa**  | Backend Dev     |
+| **Charles** | Tester        |
 
 ## 📋 Scripts
 
@@ -59,4 +62,6 @@ HuMotivatoren/
 | --------------- | ---------------------------------------- |
 | `npm run dev`   | Start frontend + backend in dev mode     |
 | `npm run build` | Build frontend and backend for production|
-| `npm run test`  | Run all Vitest tests                     |
+| `npm run test`  | Run the tests workspace                  |
+| `npm run test --workspace=frontend` | Run frontend Vitest tests |
+| `npm run test --workspace=backend`  | Run backend Vitest tests  |
