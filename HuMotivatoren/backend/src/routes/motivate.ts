@@ -15,6 +15,14 @@ motivateRouter.post('/', async (req, res) => {
     return;
   }
 
+  if (task.trim().length > 280) {
+    res.status(400).json({
+      error: 'Oppgaven er for lang (maks 280 tegn) ✂️',
+      code: 'TASK_TOO_LONG'
+    });
+    return;
+  }
+
   const validPersonalities = ['serious', 'silly', 'sports', 'nerdy'];
   if (personality && !validPersonalities.includes(personality)) {
     res.status(400).json({

@@ -22,7 +22,12 @@ cowsayRouter.post('/', (req, res) => {
     return;
   }
 
-  const comment = COWSAY_COMMENTS[Math.floor(Math.random() * COWSAY_COMMENTS.length)](text.trim());
+  if (text.trim().length > 280) {
+    res.status(400).json({ error: 'Teksten er for lang (maks 280 tegn) ✂️' });
+    return;
+  }
+
+  const comment = COWSAY_COMMENTS[Math.floor(Math.random() * COWSAY_COMMENTS.length)](text.trim().slice(0, 100));
 
   const art = cowsay.say({
     text: comment,

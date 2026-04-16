@@ -98,11 +98,12 @@ function Home({
 }: HomeProps) {
   return (
     <div className="bladerunner-page">
+      <a href="#main-content" className="skip-link">Hopp til innhold</a>
       <div className="bladerunner-scanline" />
       <header className="bladerunner-header">
         <h1 className="bladerunner-title">HuMotivatoren</h1>
         <p className="bladerunner-subtitle">⚡ Unreasonably Relevant Motivation Engine ⚡</p>
-        <nav className="bladerunner-nav">
+        <nav className="bladerunner-nav" aria-label="Sidenavigasjon">
           <Link to="/development_history" className="bladerunner-nav-link">
             📊 Development History
           </Link>
@@ -110,50 +111,76 @@ function Home({
       </header>
 
       <div className="bladerunner-container">
-        <main>
-          <form onSubmit={handleSubmit} className="bladerunner-form">
+        <main id="main-content" aria-label="HuMotivatoren – motivasjonsverktøy">
+          <form
+            onSubmit={handleSubmit}
+            className="bladerunner-form"
+            aria-label="Motivasjonsskjema"
+            noValidate
+          >
+            <label htmlFor="task-input" className="bladerunner-label">
+              Hva skal du gjøre?
+            </label>
             <input
+              id="task-input"
               type="text"
               value={task}
-              onChange={(e) => setTask(e.target.value)}
-              placeholder="Hva skal du gjøre? (f.eks. 'lese nyheter')"
+              onChange={(e) => { if (e.target.value.length <= 280) setTask(e.target.value); }}
+              placeholder="F.eks. 'lese nyheter'"
               disabled={loading}
               className="bladerunner-input"
+              maxLength={280}
+              autoComplete="off"
+              aria-describedby={error ? 'motivate-error' : undefined}
             />
 
             <CowsayBubble inputText={task} />
             <IrrelevantStats inputText={task} />
-            
-            <div className="bladerunner-button-group">
-              {PERSONALITIES.map(({ value, label }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setPersonality(value)}
-                  className={`bladerunner-button ${personality === value ? 'active' : ''}`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+
+            <fieldset className="bladerunner-fieldset">
+              <legend className="bladerunner-legend">Velg tone:</legend>
+              <div className="bladerunner-button-group" role="group">
+                {PERSONALITIES.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setPersonality(value)}
+                    className={`bladerunner-button ${personality === value ? 'active' : ''}`}
+                    aria-pressed={personality === value}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
 
             <button
               type="submit"
               disabled={loading || !task.trim()}
               className="bladerunner-button bladerunner-submit-btn"
+              aria-busy={loading}
             >
               {loading ? "⏳ Tenker..." : "Gi meg motivasjon! 💪"}
             </button>
           </form>
 
           {error && (
-            <div className="bladerunner-error">
+            <div
+              id="motivate-error"
+              className="bladerunner-error"
+              role="alert"
+              aria-live="assertive"
+            >
               <p style={{ margin: 0 }}>😅 {error}</p>
             </div>
           )}
 
           {result && (
-            <div className="bladerunner-result">
+            <section
+              className="bladerunner-result"
+              aria-label="Motivasjonssvar"
+              aria-live="polite"
+            >
               <div
                 style={{
                   fontSize: "4rem",
@@ -225,7 +252,7 @@ function Home({
                   />
                 </div>
               )}
-            </div>
+            </section>
           )}
         </main>
       </div>
