@@ -12,6 +12,23 @@ export interface MotivationResponse {
   personality: string;
 }
 
+export interface MouthWordRequest {
+  mouthMoving: boolean;
+  confidence?: number;
+}
+
+export interface MouthWordResponse {
+  text: string;
+  source: 'llm' | 'fallback';
+}
+
+export interface WordOfYourMouthSignal {
+  transmission: string;
+  insight: string;
+  source: 'llm' | 'fallback';
+  receivedAt: string;
+}
+
 export interface DevelopmentHistoryEntry {
   hash: string;
   title: string;

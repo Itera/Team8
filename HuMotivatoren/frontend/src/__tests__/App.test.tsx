@@ -11,13 +11,45 @@ const MOCK_RESPONSE = {
   personality: "silly",
 };
 
+const MOCK_HISTORY_ENTRIES = [
+  {
+    hash: "abc1234",
+    title: "feat: add development history route",
+    date: "2026-04-10T12:00:00Z",
+    author: "alice",
+  },
+];
+
+function renderApp(initialEntries: string[] = ["/"]) {
+  return render(
+    <MemoryRouter initialEntries={initialEntries}>
+      <App />
+    </MemoryRouter>,
+  );
+}
+
 describe("App", () => {
   beforeEach(() => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => MOCK_RESPONSE,
+      vi.fn().mockImplementation((input: string | URL | Request) => {
+        const url = String(input);
+
+        if (url === "/api/motivate") {
+          return Promise.resolve({
+            ok: true,
+            json: async () => MOCK_RESPONSE,
+          });
+        }
+
+        if (url === "http://localhost:3001/api/development-history") {
+          return Promise.resolve({
+            ok: true,
+            json: async () => MOCK_HISTORY_ENTRIES,
+          });
+        }
+
+        return Promise.resolve({ ok: false, status: 404 });
       }),
     );
   });
@@ -27,51 +59,47 @@ describe("App", () => {
   });
 
   it("renders HuMotivatoren heading", () => {
-    render(
-      <MemoryRouter>
-        <App />
-      </MemoryRouter>,
-    );
+    renderApp();
     expect(screen.getByText(/HuMotivatoren/i)).toBeInTheDocument();
   });
 
   it("renders the task input field", () => {
-    render(
-      <MemoryRouter>
-        <App />
-      </MemoryRouter>,
-    );
+    renderApp();
     const input = screen.getByRole("textbox");
     expect(input).toBeInTheDocument();
   });
 
   it("renders the submit button", () => {
-    render(
-      <MemoryRouter>
-        <App />
-      </MemoryRouter>,
-    );
+    renderApp();
     expect(
       screen.getByRole("button", { name: /motivasjon/i }),
     ).toBeInTheDocument();
   });
 
+  it("navigates from the home page to development history", async () => {
+    renderApp();
+
+    fireEvent.click(screen.getByRole("link", { name: /development history/i }));
+
+    expect(screen.getByText(/development_history/i)).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("link", { name: /feat: add development history route/i }),
+      ).toBeInTheDocument();
+    });
+  });
+
   it("renders personality buttons", () => {
-    render(
-      <MemoryRouter>
-        <App />
-      </MemoryRouter>,
-    );
-    const buttons = screen.getAllByRole("button");
-    expect(buttons.length).toBeGreaterThanOrEqual(4);
+    renderApp();
+    expect(screen.getByRole("button", { name: "😜 Useriøs" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "🧐 Seriøs" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "⚽ Sport" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "🤓 Nerd" })).toBeInTheDocument();
   });
 
   it("shows motivation result after valid submission", async () => {
-    render(
-      <MemoryRouter>
-        <App />
-      </MemoryRouter>,
-    );
+    renderApp();
     const input = screen.getByRole("textbox");
     fireEvent.change(input, { target: { value: "lese nyheter" } });
     fireEvent.click(screen.getByRole("button", { name: /motivasjon/i }));
@@ -82,22 +110,14 @@ describe("App", () => {
   });
 
   it("does not crash on empty submit", () => {
-    render(
-      <MemoryRouter>
-        <App />
-      </MemoryRouter>,
-    );
+    renderApp();
     expect(() => {
       fireEvent.click(screen.getByRole("button", { name: /motivasjon/i }));
     }).not.toThrow();
   });
 
   it("displays the emoji from response", async () => {
-    render(
-      <MemoryRouter>
-        <App />
-      </MemoryRouter>,
-    );
+    renderApp();
     fireEvent.change(screen.getByRole("textbox"), {
       target: { value: "hackathon" },
     });

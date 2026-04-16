@@ -5,6 +5,7 @@ import { motivateRouter } from './routes/motivate.js';
 import { healthRouter } from './routes/health.js';
 import { cowsayRouter } from './routes/cowsay.js';
 import { developmentHistoryRouter } from './routes/developmentHistory.js';
+import { mouthWordRouter } from './routes/mouthWord.js';
 
 const app: Express = express();
 
@@ -40,6 +41,8 @@ app.use('/api/motivate', motivateRouter);
 app.use('/api/health', healthRouter);
 app.use('/api/cowsay', cowsayRouter);
 app.use('/api/development-history', developmentHistoryRouter);
+app.use('/api/mouth-word', mouthWordRouter);
+app.use('/api/word-of-your-mouth', mouthWordRouter);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

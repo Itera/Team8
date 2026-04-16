@@ -18,6 +18,14 @@ const FAKE_INDEX = [
   },
 ];
 
+function renderDevelopmentHistory() {
+  return render(
+    <MemoryRouter>
+      <DevelopmentHistory />
+    </MemoryRouter>,
+  );
+}
+
 describe("DevelopmentHistory", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
@@ -43,11 +51,7 @@ describe("DevelopmentHistory", () => {
   });
 
   it("renders the page heading", async () => {
-    render(
-      <MemoryRouter>
-        <DevelopmentHistory />
-      </MemoryRouter>,
-    );
+    renderDevelopmentHistory();
 
     expect(screen.getByText(/development_history/i)).toBeInTheDocument();
 
@@ -59,21 +63,13 @@ describe("DevelopmentHistory", () => {
   it("shows a loading message initially", () => {
     fetchMock.mockImplementationOnce(() => new Promise(() => {}));
 
-    render(
-      <MemoryRouter>
-        <DevelopmentHistory />
-      </MemoryRouter>,
-    );
+    renderDevelopmentHistory();
 
     expect(screen.getByText(/loading entries/i)).toBeInTheDocument();
   });
 
   it("requests the backend development history endpoint", async () => {
-    render(
-      <MemoryRouter>
-        <DevelopmentHistory />
-      </MemoryRouter>,
-    );
+    renderDevelopmentHistory();
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
@@ -83,11 +79,7 @@ describe("DevelopmentHistory", () => {
   });
 
   it("renders a link for each entry after load", async () => {
-    render(
-      <MemoryRouter>
-        <DevelopmentHistory />
-      </MemoryRouter>,
-    );
+    renderDevelopmentHistory();
 
     await waitFor(() => {
       expect(screen.getByText(/feat: add login page/i)).toBeInTheDocument();
@@ -97,11 +89,7 @@ describe("DevelopmentHistory", () => {
   });
 
   it("links point to the detail route", async () => {
-    render(
-      <MemoryRouter>
-        <DevelopmentHistory />
-      </MemoryRouter>,
-    );
+    renderDevelopmentHistory();
 
     await waitFor(() => {
       expect(screen.getByText(/feat: add login page/i)).toBeInTheDocument();
@@ -112,11 +100,7 @@ describe("DevelopmentHistory", () => {
   });
 
   it("shows entries sorted newest first", async () => {
-    render(
-      <MemoryRouter>
-        <DevelopmentHistory />
-      </MemoryRouter>,
-    );
+    renderDevelopmentHistory();
 
     await waitFor(() => {
       expect(screen.getByText(/feat: add login page/i)).toBeInTheDocument();
@@ -131,14 +115,26 @@ describe("DevelopmentHistory", () => {
     expect(links[1].textContent).toMatch(/fix: correct button color/i);
   });
 
+  it("shows an empty state without crashing when the backend returns no entries", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    });
+
+    renderDevelopmentHistory();
+
+    await waitFor(() => {
+      expect(screen.getByText(/merge timeline :: 0 entries/i)).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole("list")).toBeInTheDocument();
+    expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+  });
+
   it("shows an error message when fetch fails", async () => {
     fetchMock.mockResolvedValueOnce({ ok: false, status: 404 });
 
-    render(
-      <MemoryRouter>
-        <DevelopmentHistory />
-      </MemoryRouter>,
-    );
+    renderDevelopmentHistory();
 
     await waitFor(() => {
       expect(screen.getByText(/\[ERROR\]/i)).toBeInTheDocument();

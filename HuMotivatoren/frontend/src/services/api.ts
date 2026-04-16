@@ -3,6 +3,8 @@ import type {
   DevelopmentHistoryEntry,
   MotivationRequest,
   MotivationResponse,
+  WordOfYourMouthSignal,
+  WordOfYourMouthSignalRequest,
 } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -43,6 +45,22 @@ export async function getDevelopmentHistoryDetail(
 
   if (!res.ok) {
     throw new Error(`Failed to load change: ${hash}`);
+  }
+
+  return res.json();
+}
+
+export async function getWordOfYourMouthSignal(
+  request: WordOfYourMouthSignalRequest,
+): Promise<WordOfYourMouthSignal> {
+  const res = await fetch(`${API_URL}/api/word-of-your-mouth/signal`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to load matrix signal: ${res.status}`);
   }
 
   return res.json();

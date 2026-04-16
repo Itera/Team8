@@ -13,6 +13,7 @@ app.listen(PORT, () => {
 📍 Health check: http://localhost:${PORT}/api/health
 📍 Motivate API: POST http://localhost:${PORT}/api/motivate
 📍 Development history API: GET http://localhost:${PORT}/api/development-history
+📍 Word of your mouth API: POST http://localhost:${PORT}/api/word-of-your-mouth/signal
 
 Ready to motivate! 💪
   `);

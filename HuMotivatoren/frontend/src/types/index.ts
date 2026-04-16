@@ -22,3 +22,15 @@ export interface DevelopmentHistoryEntry {
 export interface DevelopmentHistoryDetail extends DevelopmentHistoryEntry {
   content: string;
 }
+
+export interface WordOfYourMouthSignalRequest {
+  mouthMoving: boolean;
+  confidence?: number;
+}
+
+export interface WordOfYourMouthSignal {
+  transmission: string;
+  insight: string;
+  source: 'llm' | 'fallback';
+  receivedAt: string;
+}
