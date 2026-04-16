@@ -87,6 +87,13 @@ const FEATURES: Feature[] = [
     access: 'Aktiveres i Chaos Dashboard via "Hent vær"-knappen.',
     color: 'green',
   },
+  {
+    emoji: '🐍',
+    name: 'Snake Ambient',
+    description: 'En innebygd Snake-klon som lever i bakgrunnen på forsiden — styr ormen med piltastene og se den krasje og starte på nytt.',
+    access: 'På forsiden: bruk piltastene for å styre. Trykk R, Enter eller mellomrom for å restarte etter game over.',
+    color: 'green',
+  },
 ];
 
 const COLOR_STYLES: Record<Feature['color'], { border: string; bg: string; text: string; dot: string }> = {
@@ -194,6 +201,7 @@ export default function Features() {
 
         <footer style={{ marginTop: '2.5rem', textAlign: 'center', opacity: 0.45, fontSize: '0.75rem', letterSpacing: '0.1em', paddingBottom: '2rem' }}>
           {FEATURES.length} FEATURES ACTIVE — HUMOTIVATOREN v1.0
+
         </footer>
       </main>
     </div>
