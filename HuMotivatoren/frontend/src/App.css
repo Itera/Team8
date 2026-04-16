@@ -1,0 +1,159 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  color: #1a1a2e;
+}
+
+.app {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.app-header h1 {
+  font-size: 3rem;
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.subtitle {
+  font-size: 1.3rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 0.5rem;
+}
+
+.app-main {
+  background: #fff;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.input-label {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.task-input {
+  font-size: 1.1rem;
+  padding: 0.8rem 1rem;
+  border: 2px solid #ddd;
+  border-radius: 0.5rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.task-input:focus {
+  border-color: #667eea;
+}
+
+.submit-button {
+  font-size: 1.2rem;
+  padding: 0.8rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.1s, opacity 0.2s;
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-message {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #fee;
+  border-radius: 0.5rem;
+  color: #c00;
+  text-align: center;
+}
+
+.result-section {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.motivation-card,
+.humor-card,
+.fact-card,
+.gif-card {
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  animation: fadeIn 0.4s ease-in;
+}
+
+.motivation-card {
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%);
+}
+
+.humor-card {
+  background: linear-gradient(135deg, #fff8e1 0%, #fff3cd 100%);
+}
+
+.fact-card {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+}
+
+.gif-card {
+  text-align: center;
+}
+
+.motivation-card h2,
+.humor-card h2,
+.fact-card h2 {
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+}
+
+.motivation-text,
+.humor-text,
+.fact-text {
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.result-gif {
+  max-width: 100%;
+  border-radius: 0.5rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
