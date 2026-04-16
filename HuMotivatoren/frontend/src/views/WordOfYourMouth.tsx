@@ -190,6 +190,7 @@ function renderMatrixFrame(
 }
 
 export default function WordOfYourMouth() {
+  const stageRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const analysisCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -215,6 +216,31 @@ export default function WordOfYourMouth() {
   const [signalLoading, setSignalLoading] = useState(false);
   const [currentSubtitle, setCurrentSubtitle] = useState<string | null>(null);
   const [subtitleFading, setSubtitleFading] = useState(false);
+  const [fullscreenSupported, setFullscreenSupported] = useState(false);
+  const [isStageFullscreen, setIsStageFullscreen] = useState(false);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const hasRequestFullscreen =
+      typeof Element !== 'undefined' && typeof Element.prototype.requestFullscreen === 'function';
+    const hasExitFullscreen = typeof document.exitFullscreen === 'function';
+    const canUseFullscreen = Boolean(document.fullscreenEnabled) && hasRequestFullscreen && hasExitFullscreen;
+    setFullscreenSupported(canUseFullscreen);
+
+    const syncFullscreenState = () => {
+      setIsStageFullscreen(document.fullscreenElement === stageRef.current);
+    };
+
+    document.addEventListener('fullscreenchange', syncFullscreenState);
+    syncFullscreenState();
+
+    return () => {
+      document.removeEventListener('fullscreenchange', syncFullscreenState);
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -451,6 +477,27 @@ export default function WordOfYourMouth() {
         ? 'Face box fallback'
         : 'Frame-region fallback';
 
+  const fullscreenButtonLabel = !fullscreenSupported
+    ? 'Fullscreen unavailable'
+    : isStageFullscreen
+      ? 'Exit stage fullscreen'
+      : 'Enter stage fullscreen';
+
+  const toggleStageFullscreen = async () => {
+    const stage = stageRef.current;
+
+    if (!stage || !fullscreenSupported) {
+      return;
+    }
+
+    if (document.fullscreenElement === stage) {
+      await document.exitFullscreen();
+      return;
+    }
+
+    await stage.requestFullscreen();
+  };
+
   return (
     <div className="bladerunner-page matrix-mouth-page">
       <div className="bladerunner-scanline" />
@@ -472,7 +519,27 @@ export default function WordOfYourMouth() {
 
       <div className="bladerunner-container matrix-mouth-layout">
         <section className="matrix-mouth-panel matrix-mouth-visual-panel">
-          <div className="matrix-mouth-stage">
+          <div className="matrix-mouth-stage-controls">
+            <button
+              type="button"
+              className="matrix-mouth-fullscreen-toggle"
+              onClick={() => {
+                void toggleStageFullscreen();
+              }}
+              disabled={!fullscreenSupported}
+              aria-pressed={isStageFullscreen}
+              aria-label={fullscreenButtonLabel}
+            >
+              {fullscreenButtonLabel}
+            </button>
+            {!fullscreenSupported && (
+              <span className="matrix-mouth-fullscreen-note" role="status">
+                Fullscreen is not available in this browser.
+              </span>
+            )}
+          </div>
+
+          <div className="matrix-mouth-stage" ref={stageRef} aria-label="Video capture stage">
             <video
               ref={videoRef}
               className="matrix-mouth-video"
