@@ -18,7 +18,7 @@ const ANALYSIS_INTERVAL_MS = 220;
 const MATRIX_RENDER_INTERVAL_MS = 90;
 const FETCH_COOLDOWN_MS = 600;
 const SUBTITLE_DISPLAY_MS = 4000;
-const MATRIX_GLYPHS = '01ABCDEFHIKLMNOPRSTUVWXYZ#$%*+-<>[]{}';
+const MATRIX_GLYPHS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@#%&*+=-:;<>[]{}()/\\|';
 
 function getJokeSubtitleFromTransmission(transmission: string): string {
   const firstLine =
@@ -133,7 +133,7 @@ function renderMatrixFrame(
   mouthMoving: boolean,
 ): void {
   const { width, height, data } = frame;
-  const cellSize = Math.max(8, Math.floor(width / 56));
+  const cellSize = Math.max(6, Math.floor(width / 80));
   const rows = Math.ceil(height / cellSize);
   const columns = Math.ceil(width / cellSize);
 
@@ -255,8 +255,8 @@ export default function WordOfYourMouth() {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: 'user',
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
           },
           audio: false,
         });
