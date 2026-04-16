@@ -20,3 +20,4 @@
 - 2026-04-16: Snake test request blocked by a mismatch in the checkout. frontend/src/App.tsx still renders HuMotivatoren routes and motivation UI, so there is no Snake game behavior to exercise yet.
 - 2026-04-16: Updated frontend tests for the Snake clone; frontend suite passes, while the root workspace still has an unrelated backend expectation failure.
 - 2026-04-16: Added snake move acceptance tests in frontend/src/__tests__/App.test.tsx requiring no ambient snake on home, a home nav link to /snake, and an accessible dedicated snake route with labels/instructions. Current app fails these checks because home still renders snake ambience and no /snake route/nav link exists.
+- 2026-04-16: Fullscreen video-capture logic exists in WordOfYourMouth (enter/exit toggle and unsupported-state UI), but focused tests still cover only camera-unavailable shell and subtitle transmission; fullscreen enter/exit/unsupported paths are currently untested.

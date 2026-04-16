@@ -84,6 +84,104 @@ describe('WordOfYourMouth', () => {
     expect(screen.getByText(/word_of_your_mouth/i)).toBeInTheDocument();
   });
 
+  it('disables fullscreen control and shows an unavailable message when Fullscreen API is not supported', () => {
+    vi.stubGlobal('navigator', {
+      mediaDevices: undefined,
+    });
+
+    Object.defineProperty(document, 'fullscreenEnabled', {
+      configurable: true,
+      get: () => false,
+    });
+
+    render(
+      <MemoryRouter>
+        <WordOfYourMouth />
+      </MemoryRouter>,
+    );
+
+    const toggle = screen.getByRole('button', { name: /fullscreen unavailable/i });
+    expect(toggle).toBeDisabled();
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByText(/fullscreen is not available in this browser/i)).toBeInTheDocument();
+  });
+
+  it('toggles stage fullscreen and keeps aria-pressed in sync', async () => {
+    const fakeTrack = { stop: vi.fn() };
+    const fakeStream = {
+      getTracks: () => [fakeTrack],
+    } as unknown as MediaStream;
+
+    vi.stubGlobal('navigator', {
+      mediaDevices: {
+        getUserMedia: vi.fn().mockResolvedValue(fakeStream),
+      },
+    });
+
+    const requestFullscreen = vi.fn().mockResolvedValue(undefined);
+    const exitFullscreen = vi.fn().mockResolvedValue(undefined);
+    let fullscreenElement: Element | null = null;
+
+    Object.defineProperty(document, 'fullscreenEnabled', {
+      configurable: true,
+      get: () => true,
+    });
+    Object.defineProperty(document, 'fullscreenElement', {
+      configurable: true,
+      get: () => fullscreenElement,
+    });
+    Object.defineProperty(document, 'exitFullscreen', {
+      configurable: true,
+      value: exitFullscreen,
+    });
+    Object.defineProperty(Element.prototype, 'requestFullscreen', {
+      configurable: true,
+      value: requestFullscreen,
+    });
+
+    render(
+      <MemoryRouter>
+        <WordOfYourMouth />
+      </MemoryRouter>,
+    );
+
+    const stage = screen.getByLabelText(/video capture stage/i);
+    const enterButton = await screen.findByRole('button', { name: /enter stage fullscreen/i });
+    expect(enterButton).toHaveAttribute('aria-pressed', 'false');
+
+    await act(async () => {
+      enterButton.click();
+    });
+
+    expect(requestFullscreen).toHaveBeenCalledTimes(1);
+
+    fullscreenElement = stage;
+    act(() => {
+      document.dispatchEvent(new Event('fullscreenchange'));
+    });
+
+    const exitButton = await screen.findByRole('button', { name: /exit stage fullscreen/i });
+    expect(exitButton).toHaveAttribute('aria-pressed', 'true');
+
+    await act(async () => {
+      exitButton.click();
+    });
+
+    expect(exitFullscreen).toHaveBeenCalledTimes(1);
+
+    fullscreenElement = null;
+    act(() => {
+      document.dispatchEvent(new Event('fullscreenchange'));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /enter stage fullscreen/i })).toHaveAttribute(
+        'aria-pressed',
+        'false',
+      );
+    });
+  });
+
   it('renders transmission as subtitle text when signal response arrives', async () => {
     const fakeTrack = { stop: vi.fn() };
     const fakeStream = {

@@ -1,5 +1,59 @@
 [
   {
+    "hash": "4268838",
+    "title": "refactor: move snake game to dedicated component and feature view",
+    "date": "2026-04-16T17:51:10+02:00",
+    "author": "hejuhenryk"
+  },
+  {
+    "hash": "b318dd6",
+    "title": "feat: add SnakeAmbient to Features page (#27)",
+    "date": "2026-04-16T17:36:04+02:00",
+    "author": "Espen Berglund"
+  },
+  {
+    "hash": "7b4270c",
+    "title": "Merge pull request #26 from Itera/fix/home-restore-snake-bg",
+    "date": "2026-04-16T17:31:32+02:00",
+    "author": "anoncake"
+  },
+  {
+    "hash": "4a74d2d",
+    "title": "fix: restore homepage and keep snake ambient",
+    "date": "2026-04-16T15:30:34+00:00",
+    "author": "root"
+  },
+  {
+    "hash": "7e3c743",
+    "title": "Merge remote-tracking branch 'origin/main' into fix/video-movement-llm-jokes-subtitles",
+    "date": "2026-04-16T17:14:14+02:00",
+    "author": "hejuhenryk"
+  },
+  {
+    "hash": "f3cda5f",
+    "title": "feat: trigger LLM joke subtitles from mouth movement",
+    "date": "2026-04-16T17:13:37+02:00",
+    "author": "hejuhenryk"
+  },
+  {
+    "hash": "949685d",
+    "title": "Merge remote-tracking branch 'origin/main' into feat/nyan-snake-demo",
+    "date": "2026-04-16T15:13:16+00:00",
+    "author": "root"
+  },
+  {
+    "hash": "8b42ebe",
+    "title": "feat: add nyan snake demo",
+    "date": "2026-04-16T15:07:41+00:00",
+    "author": "root"
+  },
+  {
+    "hash": "6899aac",
+    "title": "feat: features overview page at /features (#23)",
+    "date": "2026-04-16T17:05:50+02:00",
+    "author": "Espen Berglund"
+  },
+  {
     "hash": "b675770",
     "title": "fix: personality selection and CORS for port 5174 (#22)",
     "date": "2026-04-16T17:04:02+02:00",
