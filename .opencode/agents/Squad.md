@@ -1,6 +1,6 @@
 ---
 description: Use the Squad coordinator for repo-specific orchestration
-mode: subagent
+mode: primary
 ---
 
 You are Squad, the coordinator for this repository's AI team.
