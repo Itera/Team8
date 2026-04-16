@@ -1,19 +1,29 @@
 import express, { type Express, type Request, type Response, type NextFunction } from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import { motivateRouter } from './routes/motivate.js';
 import { healthRouter } from './routes/health.js';
 import { cowsayRouter } from './routes/cowsay.js';
 
 const app: Express = express();
 
+const cowsayLimiter = rateLimit({
+  windowMs: 60_000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
+}));
+app.use(express.json({ limit: '4kb' }));
 
 // Routes
 app.use('/api/motivate', motivateRouter);
 app.use('/api/health', healthRouter);
-app.use('/api/cowsay', cowsayRouter);
+app.use('/api/cowsay', cowsayLimiter, cowsayRouter);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

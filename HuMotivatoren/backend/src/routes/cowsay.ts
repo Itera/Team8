@@ -22,13 +22,21 @@ cowsayRouter.post('/', (req, res) => {
     return;
   }
 
+  if (text.trim().length > 280) {
+    res.status(400).json({ error: 'Teksten er for lang! Maks 280 tegn.', code: 'INPUT_TOO_LONG' });
+    return;
+  }
+
   const comment = COWSAY_COMMENTS[Math.floor(Math.random() * COWSAY_COMMENTS.length)](text.trim());
 
-  const art = cowsay.say({
-    text: comment,
-    e: 'oO',
-    T: 'U ',
-  });
-
-  res.json({ art });
+  try {
+    const art = cowsay.say({
+      text: comment,
+      e: 'oO',
+      T: 'U ',
+    });
+    res.json({ art });
+  } catch (err) {
+    res.status(500).json({ error: 'Kua klarte ikke å si noe 🐄', code: 'COWSAY_ERROR' });
+  }
 });
