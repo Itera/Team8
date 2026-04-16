@@ -33,7 +33,8 @@ How to decide who handles what.
 
 ## Rules
 
-1. **Eager by default** — spawn all agents who could usefully start work, including anticipatory downstream work.
+1. **Features page sync** — After any feature work completes (frontend or backend), Jake MUST update `src/views/Features.tsx` to include the new feature. Route this as a follow-up task if the original agent wasn't Jake.
+2. **Eager by default**— spawn all agents who could usefully start work, including anticipatory downstream work.
 2. **Scribe always runs** after substantial work, always as `mode: "background"`. Never blocks.
 3. **Quick facts → coordinator answers directly.** Don't spawn an agent for "what port does the server run on?"
 4. **When two agents could handle it**, pick the one whose domain is the primary concern.
