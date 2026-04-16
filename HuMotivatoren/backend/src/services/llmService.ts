@@ -1,11 +1,6 @@
 import axios from 'axios';
 import type { MotivationRequest, MotivationResponse } from '../types/index.js';
 
-const AZURE_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT;
-const AZURE_DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT;
-const AZURE_API_VERSION = process.env.AZURE_OPENAI_API_VERSION;
-const AZURE_API_KEY = process.env.AZURE_OPENAI_API_KEY;
-
 const personalityDescriptions: Record<string, string> = {
   silly:   'useriøs, morsom og litt fjollete. Bruk humor, ordspill og morsomme fakta.',
   serious: 'seriøs, motiverende og profesjonell. Bruk inspirerende sitater og faktabaserte tips.',
@@ -55,8 +50,12 @@ const fallbackResponses: Record<string, MotivationResponse> = {
   }
 };
 
-async function generateWithLLM(task: string, personality: string): Promise<MotivationResponse> {
-  const url = `${AZURE_ENDPOINT}/openai/deployments/${AZURE_DEPLOYMENT}/chat/completions?api-version=${AZURE_API_VERSION}`;
+async function generateWithLLM(
+  task: string,
+  personality: string,
+  config: { endpoint: string; deployment: string; apiVersion: string; apiKey: string }
+): Promise<MotivationResponse> {
+  const url = `${config.endpoint}/openai/deployments/${config.deployment}/chat/completions?api-version=${config.apiVersion}`;
 
   const systemPrompt = `Du er HuMotivatoren, en norsk motivasjonsassistent som er ${personalityDescriptions[personality] || personalityDescriptions.silly}
 Innholdet skal alltid være positivt, inkluderende og i tråd med Iteras verdier. Ingen støtende, diskriminerende eller upassende innhold.
@@ -84,7 +83,7 @@ Generer motivasjonsinnhold på norsk tilpasset denne oppgaven. Svar med dette JS
     },
     {
       headers: {
-        'api-key': AZURE_API_KEY,
+        'api-key': config.apiKey,
         'Content-Type': 'application/json',
       },
       timeout: 15000,
@@ -108,13 +107,19 @@ Generer motivasjonsinnhold på norsk tilpasset denne oppgaven. Svar med dette JS
 export async function getMotivation(request: MotivationRequest): Promise<MotivationResponse> {
   const personality = request.personality || 'silly';
 
-  if (!AZURE_ENDPOINT || !AZURE_DEPLOYMENT || !AZURE_API_VERSION || !AZURE_API_KEY) {
+  // Read env vars at call time (not module load time) to avoid ESM hoisting issue
+  const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
+  const deployment = process.env.AZURE_OPENAI_DEPLOYMENT;
+  const apiVersion = process.env.AZURE_OPENAI_API_VERSION;
+  const apiKey = process.env.AZURE_OPENAI_API_KEY;
+
+  if (!endpoint || !deployment || !apiVersion || !apiKey) {
     console.warn('⚠️ Azure OpenAI not configured — returning fallback response');
     return { ...fallbackResponses[personality] ?? fallbackResponses.silly };
   }
 
   try {
-    return await generateWithLLM(request.task, personality);
+    return await generateWithLLM(request.task, personality, { endpoint, deployment, apiVersion, apiKey });
   } catch (error) {
     console.error('LLM call failed, using fallback:', error instanceof Error ? error.message : error);
     return { ...fallbackResponses[personality] ?? fallbackResponses.silly };
