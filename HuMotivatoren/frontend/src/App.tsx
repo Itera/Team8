@@ -9,37 +9,6 @@ import { IrrelevantStats } from './components/IrrelevantStats';
 // Cat words in many languages
 const CAT_REGEX = /\b(cat|cats|kitten|kittens|kitty|kitties|katt|katten|katter|kattene|kattunge|kattungen|kattunger|kattungene|gato|gatos|gatito|gatitos|chat|chats|chaton|chatons|katze|katzen|k\u00e4tzchen|gatto|gatti|gattino|kat|katte|killing|killingen|poes|poesje|kot|koty|kotek|kissa|kissoja|\u732b|\u8c93|\u306d\u3053|\u0642\u0637\u0629)\b/i;
 
-const QUOTES: Record<string, { content: string; author: string }[]> = {
-  silly: [
-    { content: "If at first you don't succeed, then skydiving definitely isn't for you.", author: "Steven Wright" },
-    { content: "The road to success is dotted with many tempting parking spaces.", author: "Will Rogers" },
-    { content: "People say nothing is impossible, but I do nothing every day.", author: "A.A. Milne" },
-    { content: "I always wanted to be somebody, but now I realize I should have been more specific.", author: "Lily Tomlin" },
-    { content: "The elevator to success is out of order. You'll have to use the stairs.", author: "Joe Girard" },
-  ],
-  serious: [
-    { content: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
-    { content: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
-    { content: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
-    { content: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
-    { content: "The secret of getting ahead is getting started.", author: "Mark Twain" },
-  ],
-  sports: [
-    { content: "You miss 100% of the shots you don't take.", author: "Wayne Gretzky" },
-    { content: "Champions keep playing until they get it right.", author: "Billie Jean King" },
-    { content: "It's not whether you get knocked down, it's whether you get up.", author: "Vince Lombardi" },
-    { content: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke" },
-    { content: "The more I practice, the luckier I get.", author: "Gary Player" },
-  ],
-  nerdy: [
-    { content: "First, solve the problem. Then, write the code.", author: "John Johnson" },
-    { content: "Any sufficiently advanced technology is indistinguishable from magic.", author: "Arthur C. Clarke" },
-    { content: "The best way to predict the future is to invent it.", author: "Alan Kay" },
-    { content: "Programs must be written for people to read, and only incidentally for machines to execute.", author: "Harold Abelson" },
-    { content: "Simplicity is the soul of efficiency.", author: "Austin Freeman" },
-  ],
-};
-
 type PersonalityOption = NonNullable<MotivationRequest["personality"]>;
 
 const PERSONALITIES: { value: PersonalityOption; label: string }[] = [
@@ -58,7 +27,6 @@ function App() {
   const [catImageUrl, setCatImageUrl] = useState<string | null>(null);
   const [catFact, setCatFact] = useState<string | null>(null);
   const [catBreed, setCatBreed] = useState<{ name: string; temperament: string; description: string } | null>(null);
-  const [quotableQuote, setQuotableQuote] = useState<{ content: string; author: string } | null>(null);
   const lastFetchedFor = useRef<string | null>(null);
 
   useEffect(() => {
@@ -91,8 +59,6 @@ function App() {
     setLoading(true);
     setError(null);
     setResult(null);
-    const pool = QUOTES[personality];
-    setQuotableQuote(pool[Math.floor(Math.random() * pool.length)]);
     try {
       const request: MotivationRequest = { task: task.trim(), personality };
       const response = await fetch("/api/motivate", {
@@ -128,7 +94,6 @@ function App() {
             catImageUrl={catImageUrl}
             catFact={catFact}
             catBreed={catBreed}
-            quotableQuote={quotableQuote}
           />
         }
       />
@@ -148,7 +113,6 @@ interface HomeProps {
   catImageUrl: string | null;
   catFact: string | null;
   catBreed: { name: string; temperament: string; description: string } | null;
-  quotableQuote: { content: string; author: string } | null;
 }
 
 function Home({
@@ -163,7 +127,6 @@ function Home({
   catImageUrl,
   catFact,
   catBreed,
-  quotableQuote,
 }: HomeProps) {
   return (
     <div
@@ -268,12 +231,12 @@ function Home({
                 <div>
                   {catBreed && (
                     <>
-                      <p style={{ margin: '0 0 0.25rem', fontWeight: 'bold', color: '#764ba2', fontSize: '1rem' }}>\uD83D\uDC31 {catBreed.name}</p>
-                      <p style={{ margin: '0 0 0.4rem', color: '#555', fontSize: '0.85rem' }}>\uD83C\uDFAD {catBreed.temperament}</p>
+                      <p style={{ margin: '0 0 0.25rem', fontWeight: 'bold', color: '#764ba2', fontSize: '1rem' }}>🐱 {catBreed.name}</p>
+                      <p style={{ margin: '0 0 0.4rem', color: '#555', fontSize: '0.85rem' }}>🎭 {catBreed.temperament}</p>
                       <p style={{ margin: '0 0 0.6rem', color: '#374151', fontSize: '0.9rem' }}>{catBreed.description}</p>
                     </>
                   )}
-                  {catFact && <p style={{ margin: 0, color: '#374151', fontSize: '0.9rem', fontStyle: 'italic' }}>\uD83D\uDCA1 {catFact}</p>}
+                  {catFact && <p style={{ margin: 0, color: '#374151', fontSize: '0.9rem', fontStyle: 'italic' }}>💡 {catFact}</p>}
                 </div>
               </div>
             )}
@@ -373,25 +336,16 @@ function Home({
                 >
                   💬 Sitat
                 </h2>
-                {quotableQuote ? (
-                  <>
-                    <p style={{ fontSize: '1.3rem', fontStyle: 'italic', margin: '0 0 0.4rem', color: '#374151' }}>
-                      "{quotableQuote.content}"
-                    </p>
-                    <p style={{ margin: 0, color: '#764ba2', fontWeight: 'bold', fontSize: '0.9rem' }}>— {quotableQuote.author}</p>
-                  </>
-                ) : (
-                  <p
-                    style={{
-                      fontSize: "1.3rem",
-                      fontStyle: "italic",
-                      margin: 0,
-                      color: "#374151",
-                    }}
-                  >
-                    "{result.quote}"
-                  </p>
-                )}
+                <p
+                  style={{
+                    fontSize: "1.3rem",
+                    fontStyle: "italic",
+                    margin: 0,
+                    color: "#374151",
+                  }}
+                >
+                  "{result.quote}"
+                </p>
               </div>
 
               <div style={{ marginBottom: "1.5rem" }}>
