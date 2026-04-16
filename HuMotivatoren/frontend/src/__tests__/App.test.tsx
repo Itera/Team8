@@ -90,4 +90,19 @@ describe('App', () => {
     expect(board).toHaveAttribute('data-status', 'playing');
     expect(board).toHaveAttribute('data-score', '0');
   });
+
+  it("auto-triggers motivation when selecting a category", async () => {
+    renderApp();
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "lese nyheter" } });
+    fireEvent.click(screen.getByRole("button", { name: "Sport Full energi" }));
+
+    await waitFor(() => {
+      expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+        "/api/motivate",
+        expect.objectContaining({
+          method: "POST",
+        }),
+      );
+    });
+  });
 });

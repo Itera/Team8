@@ -3,6 +3,7 @@ import { Link, Route, Routes } from 'react-router-dom';
 import ChangeDetail from './views/ChangeDetail';
 import ChaosDashboard from './views/ChaosDashboard';
 import DevelopmentHistory from './views/DevelopmentHistory';
+import Features from './views/Features';
 import WordOfYourMouth from './views/WordOfYourMouth';
 import './bladerunner.css';
 
@@ -146,6 +147,7 @@ function App() {
       <Route path="/development_history/:hash" element={<ChangeDetail />} />
       <Route path="/development_history" element={<DevelopmentHistory />} />
       <Route path="/word_of_your_mouth" element={<WordOfYourMouth />} />
+      <Route path="/features" element={<Features />} />
       <Route path="/chaos" element={<ChaosDashboard latestTask="" />} />
       <Route path="*" element={<SnakeHome />} />
     </Routes>
@@ -215,6 +217,7 @@ function SnakeHome() {
           <Link to="/chaos" className="bladerunner-nav-link">🌪 Chaos Dashboard</Link>
           <Link to="/development_history" className="bladerunner-nav-link">📊 Development History</Link>
           <Link to="/word_of_your_mouth" className="bladerunner-nav-link">👄 Word of Your Mouth</Link>
+          <Link to="/features" className="bladerunner-nav-link">✨ Features</Link>
         </nav>
       </header>
 
