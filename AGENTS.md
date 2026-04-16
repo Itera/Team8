@@ -4,6 +4,7 @@ This is the canonical instruction file for the repo. Other agent-specific instru
 
 - The actual app lives in `HuMotivatoren/`; run app commands from there.
 - Use `npm install` once in `HuMotivatoren/` to install all workspace deps.
+- OpenCode should load `.github/agents/squad.agent.md` and use `.squad/team.md` plus `.squad/routing.md` as the squad source of truth.
 - `npm run dev` starts backend and frontend together.
 - `npm run build` runs `frontend` build first, then `backend` build.
 - `npm run test` only runs the `tests` workspace. Use `npm run test --workspace=frontend` or `npm run test --workspace=backend` for package-specific tests.
