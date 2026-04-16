@@ -1,0 +1,22 @@
+{
+  "universe_usage_history": [
+    {
+      "universe": "Brooklyn Nine-Nine",
+      "used_at": "2026-04-16T10:51:00Z",
+      "project": "HuMotivatoren",
+      "agents_cast": 4
+    }
+  ],
+  "assignment_cast_snapshots": {
+    "humotivatoren-2026-04-16": {
+      "assignment_id": "humotivatoren-2026-04-16",
+      "universe": "Brooklyn Nine-Nine",
+      "cast": {
+        "amy": "Lead",
+        "jake": "Frontend Dev",
+        "rosa": "Backend Dev",
+        "charles": "Tester"
+      }
+    }
+  }
+}

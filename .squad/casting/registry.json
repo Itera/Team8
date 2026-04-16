@@ -1,0 +1,52 @@
+{
+  "agents": {
+    "amy": {
+      "persistent_name": "Amy",
+      "universe": "Brooklyn Nine-Nine",
+      "role": "Lead",
+      "created_at": "2026-04-16T10:51:00Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "jake": {
+      "persistent_name": "Jake",
+      "universe": "Brooklyn Nine-Nine",
+      "role": "Frontend Dev",
+      "created_at": "2026-04-16T10:51:00Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "rosa": {
+      "persistent_name": "Rosa",
+      "universe": "Brooklyn Nine-Nine",
+      "role": "Backend Dev",
+      "created_at": "2026-04-16T10:51:00Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "charles": {
+      "persistent_name": "Charles",
+      "universe": "Brooklyn Nine-Nine",
+      "role": "Tester",
+      "created_at": "2026-04-16T10:51:00Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "scribe": {
+      "persistent_name": "Scribe",
+      "universe": "exempt",
+      "role": "Session Logger",
+      "created_at": "2026-04-16T10:51:00Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "ralph": {
+      "persistent_name": "Ralph",
+      "universe": "exempt",
+      "role": "Work Monitor",
+      "created_at": "2026-04-16T10:51:00Z",
+      "legacy_named": false,
+      "status": "active"
+    }
+  }
+}
