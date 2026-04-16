@@ -7,55 +7,80 @@ interface CowsayBubbleProps {
 function playMoo() {
   try {
     const ctx = new AudioContext();
-
-    const playTone = (
-      startTime: number,
-      duration: number,
-      startFreq: number,
-      endFreq: number,
-      gainPeak: number,
-    ) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
-
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(startFreq, startTime);
-      osc.frequency.exponentialRampToValueAtTime(endFreq, startTime + duration);
-
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(600, startTime);
-      filter.frequency.linearRampToValueAtTime(300, startTime + duration);
-      filter.Q.value = 8;
-
-      gain.gain.setValueAtTime(0, startTime);
-      gain.gain.linearRampToValueAtTime(gainPeak, startTime + 0.05);
-      gain.gain.setValueAtTime(gainPeak, startTime + duration - 0.1);
-      gain.gain.linearRampToValueAtTime(0, startTime + duration);
-
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(startTime);
-      osc.stop(startTime + duration);
-    };
-
     const now = ctx.currentTime;
-    // "M" — kort attack
-    playTone(now, 0.18, 180, 220, 0.22);
-    // "OOO" — lang glid ned (hoveddelen av MOO)
-    playTone(now + 0.15, 0.7, 220, 130, 0.28);
 
-    // Litt vibrato-effekt via en LFO på gain
-    const lfo = ctx.createOscillator();
-    const lfoGain = ctx.createGain();
-    lfo.frequency.value = 5.5;
-    lfoGain.gain.value = 0.04;
-    lfo.connect(lfoGain);
-    lfo.start(now + 0.15);
-    lfo.stop(now + 0.85);
+    // --- Hoveddel: to oscillatorer blandet (sawtooth + square) for ku-klang ---
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const oscGain1 = ctx.createGain();
+    const oscGain2 = ctx.createGain();
 
-    setTimeout(() => ctx.close(), 1200);
+    osc1.type = 'sawtooth';
+    osc2.type = 'square';
+
+    // Frekvenskurve: starter lavt, stiger raskt, holder, synker ned igjen
+    [osc1, osc2].forEach((osc) => {
+      osc.frequency.setValueAtTime(130, now);
+      osc.frequency.linearRampToValueAtTime(190, now + 0.12);
+      osc.frequency.linearRampToValueAtTime(210, now + 0.35);
+      osc.frequency.exponentialRampToValueAtTime(140, now + 0.85);
+      osc.frequency.exponentialRampToValueAtTime(110, now + 1.3);
+    });
+
+    oscGain1.gain.value = 0.35;
+    oscGain2.gain.value = 0.12;
+
+    // --- Pustete lyd (hvit støy filtrert) ---
+    const bufferSize = ctx.sampleRate * 1.4;
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.value = 180;
+    noiseFilter.Q.value = 1.5;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.value = 0.04;
+
+    // --- Resonansfilter som former lyd til ku-klang ---
+    const formantFilter = ctx.createBiquadFilter();
+    formantFilter.type = 'peaking';
+    formantFilter.frequency.value = 350;
+    formantFilter.Q.value = 3;
+    formantFilter.gain.value = 10;
+
+    const lowpass = ctx.createBiquadFilter();
+    lowpass.type = 'lowpass';
+    lowpass.frequency.setValueAtTime(900, now);
+    lowpass.frequency.linearRampToValueAtTime(400, now + 0.5);
+    lowpass.frequency.linearRampToValueAtTime(250, now + 1.3);
+    lowpass.Q.value = 2;
+
+    // --- Hoved-konvolutt (amplitude) ---
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0, now);
+    masterGain.gain.linearRampToValueAtTime(0.7, now + 0.08);
+    masterGain.gain.setValueAtTime(0.7, now + 0.9);
+    masterGain.gain.linearRampToValueAtTime(0, now + 1.4);
+
+    // --- Koble alt sammen ---
+    osc1.connect(oscGain1);
+    osc2.connect(oscGain2);
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+
+    [oscGain1, oscGain2, noiseGain].forEach((g) => g.connect(formantFilter));
+    formantFilter.connect(lowpass);
+    lowpass.connect(masterGain);
+    masterGain.connect(ctx.destination);
+
+    osc1.start(now); osc1.stop(now + 1.45);
+    osc2.start(now); osc2.stop(now + 1.45);
+    noise.start(now); noise.stop(now + 1.45);
+
+    setTimeout(() => ctx.close(), 1800);
   } catch {
     // Nettleser støtter ikke Web Audio API
   }
