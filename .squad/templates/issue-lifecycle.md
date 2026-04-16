@@ -310,13 +310,27 @@ When spawning an agent to work on an issue, include this context block:
 {specific directive to the agent}
 
 **After completing work:**
-1. Commit with message referencing issue number
-2. Push branch
-3. Open PR using:
+1. Commit code changes with message referencing issue number
+2. **Commit Squad state to the feature branch BEFORE opening the PR:**
+   ```powershell
+   cd {team_root}
+   git add .squad/agents/{name}/history.md
+   git add .squad/decisions/inbox/
+   # Stage any other .squad/ files modified during this session
+   git diff --cached --quiet || git commit -m "docs(squad): flush {name} history and decisions for #{issue-number}"
+   ```
+   This ensures history and decisions are included in the PR diff, not left behind.
+3. Push branch (including Squad state):
+   ```
+   git push
+   ```
+4. Open PR using:
    ```
    gh pr create --title "{title}" --body "Closes #{number}\n\n{description}" --head squad/{issue-number}-{slug} --base {base-branch}
    ```
-4. Report PR URL to coordinator
+5. Report PR URL to coordinator
+
+> ⚠️ **Never open a PR before step 2.** If `.squad/` state is not committed to the feature branch, history and decisions will be lost or arrive out-of-order after the PR is merged.
 ```
 
 ## Ralph's Role in Issue Lifecycle
