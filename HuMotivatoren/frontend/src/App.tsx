@@ -11,6 +11,9 @@ import './bladerunner.css';
 // Cat words in many languages
 const CAT_REGEX = /\b(cat|cats|kitten|kittens|kitty|kitties|katt|katten|katter|kattene|kattunge|kattungen|kattunger|kattungene|gato|gatos|gatito|gatitos|chat|chats|chaton|chatons|katze|katzen|kätzchen|gatto|gatti|gattino|kat|katte|killing|killingen|poes|poesje|kot|koty|kotek|kissa|kissoja|猫|貓|ねこ|قطة)\b/i;
 
+// Rottweiler words in Norwegian, English, and German
+const ROTTWEILER_REGEX = /\b(rottweiler|rottweilers|rotty|rottie|rotties|rottvakt|rottvakter)\b/i;
+
 type PersonalityOption = NonNullable<MotivationRequest["personality"]>;
 
 const PERSONALITIES: { value: PersonalityOption; label: string }[] = [
@@ -30,6 +33,9 @@ function App() {
   const [catFact, setCatFact] = useState<string | null>(null);
   const [catBreed, setCatBreed] = useState<{ name: string; temperament: string; description: string } | null>(null);
   const lastFetchedFor = useRef<string | null>(null);
+  const [rottweilerImageUrl, setRottweilerImageUrl] = useState<string | null>(null);
+  const [rottweilerFact, setRottweilerFact] = useState<string | null>(null);
+  const lastFetchedRottweilerFor = useRef<string | null>(null);
 
   useEffect(() => {
     const hasCat = CAT_REGEX.test(task);
@@ -55,7 +61,30 @@ function App() {
     }
   }, [task]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    const hasRottweiler = ROTTWEILER_REGEX.test(task);
+    if (hasRottweiler && lastFetchedRottweilerFor.current !== task) {
+      lastFetchedRottweilerFor.current = task;
+      fetch('https://dog.ceo/api/breed/rottweiler/images/random')
+        .then((r) => r.json())
+        .then((data: { message: string; status: string }) => {
+          if (data?.message) setRottweilerImageUrl(data.message);
+        })
+        .catch(() => {});
+      fetch('https://dogapi.dog/api/v2/facts?limit=1')
+        .then((r) => r.json())
+        .then((data: { data: { id: string; type: string; attributes: { body: string } }[] }) => {
+          if (data?.data?.[0]?.attributes?.body) setRottweilerFact(data.data[0].attributes.body);
+        })
+        .catch(() => {});
+    } else if (!hasRottweiler) {
+      setRottweilerImageUrl(null);
+      setRottweilerFact(null);
+      lastFetchedRottweilerFor.current = null;
+    }
+  }, [task]);
+
+  const handleSubmit= async (e: React.FormEvent) => {
     e.preventDefault();
     if (!task.trim()) return;
 
@@ -104,6 +133,8 @@ function App() {
             catImageUrl={catImageUrl}
             catFact={catFact}
             catBreed={catBreed}
+            rottweilerImageUrl={rottweilerImageUrl}
+            rottweilerFact={rottweilerFact}
           />
         }
       />
@@ -123,12 +154,15 @@ interface HomeProps {
   catImageUrl: string | null;
   catFact: string | null;
   catBreed: { name: string; temperament: string; description: string } | null;
+  rottweilerImageUrl: string | null;
+  rottweilerFact: string | null;
 }
 
 function Home({
   task, setTask, personality, setPersonality,
   loading, result, error, handleSubmit,
   catImageUrl, catFact, catBreed,
+  rottweilerImageUrl, rottweilerFact,
 }: HomeProps) {
   return (
     <div className="bladerunner-page">
@@ -142,6 +176,16 @@ function Home({
           backgroundImage: `url(${catImageUrl})`,
           backgroundSize: 'cover', backgroundPosition: 'center',
           opacity: 0.18, pointerEvents: 'none', zIndex: 0,
+        }} aria-hidden="true" />
+      )}
+
+      {/* Rottweiler background overlay */}
+      {rottweilerImageUrl && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundImage: `url(${rottweilerImageUrl})`,
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          opacity: 0.12, pointerEvents: 'none', zIndex: 0,
         }} aria-hidden="true" />
       )}
 
@@ -212,6 +256,23 @@ function Home({
                       </>
                     )}
                     {catFact && <p style={{ margin: 0, color: 'var(--br-text)', fontSize: '0.88rem', fontStyle: 'italic' }}>💡 {catFact}</p>}
+                  </div>
+                </div>
+              )}
+
+              {/* Rottweiler info card */}
+              {rottweilerImageUrl && (
+                <div role="region" aria-label="Rottweilerinformasjon" style={{
+                  background: 'rgba(255,140,0,0.07)', border: '1px solid var(--br-orange)',
+                  borderRadius: '4px', padding: '1rem 1.25rem', marginBottom: '1rem',
+                  display: 'flex', gap: '1rem', alignItems: 'flex-start',
+                }}>
+                  <img src={rottweilerImageUrl} alt="Rottweiler"
+                    style={{ width: '110px', height: '110px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0, border: '1px solid var(--br-orange)' }} />
+                  <div>
+                    <p style={{ margin: '0 0 0.2rem', fontWeight: 'bold', color: 'var(--br-orange)', fontSize: '1rem' }}>🐕 Rottweiler</p>
+                    <p style={{ margin: '0 0 0.3rem', color: 'var(--br-cyan)', fontSize: '0.85rem' }}>🎭 Lojal, selvsikker, modig</p>
+                    {rottweilerFact && <p style={{ margin: 0, color: 'var(--br-text)', fontSize: '0.88rem', fontStyle: 'italic' }}>💡 {rottweilerFact}</p>}
                   </div>
                 </div>
               )}
@@ -332,7 +393,14 @@ function Home({
                   </div>
                 )}
 
-                {(result.gifUrl || catImageUrl) && (
+                {rottweilerImageUrl && rottweilerFact && (
+                  <div style={{ marginTop: '1.5rem', background: 'rgba(255,140,0,0.07)', border: '1px solid var(--br-orange)', borderRadius: '4px', padding: '1rem' }}>
+                    <h2 style={{ color: 'var(--br-orange)', marginBottom: '0.5rem', fontSize: '1.2rem' }}>🐕 Rottweiler-fakta</h2>
+                    <p style={{ margin: 0, color: 'var(--br-text)', fontStyle: 'italic' }}>{rottweilerFact}</p>
+                  </div>
+                )}
+
+                {(result.gifUrl || catImageUrl || rottweilerImageUrl) && (
                   <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem', flexWrap: 'wrap' }}>
                     {result.gifUrl && (
                       <img src={result.gifUrl} alt="Motiverende GIF"
@@ -341,6 +409,10 @@ function Home({
                     {catImageUrl && (
                       <img src={catImageUrl} alt={catBreed?.name ?? 'Søt katt'}
                         style={{ flex: '1 1 45%', maxWidth: '48%', minWidth: '140px', border: '2px solid var(--br-cyan)', objectFit: 'cover' }} />
+                    )}
+                    {rottweilerImageUrl && (
+                      <img src={rottweilerImageUrl} alt="Rottweiler"
+                        style={{ flex: '1 1 45%', maxWidth: '48%', minWidth: '140px', border: '2px solid var(--br-orange)', objectFit: 'cover' }} />
                     )}
                   </div>
                 )}
