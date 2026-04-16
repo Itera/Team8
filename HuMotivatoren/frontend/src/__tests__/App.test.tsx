@@ -1,26 +1,10 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { MemoryRouter } from "react-router-dom";
-import App from "../App";
+import { fireEvent, render, screen } from '@testing-library/react';
+import { act } from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
+import App from '../App';
 
-const MOCK_RESPONSE = {
-  quote: "Du klarer det!",
-  fact: "Visste du at 90% av alle statistikker er oppdiktet?",
-  tip: "Ta en kopp kaffe og ga for det",
-  emoji: "🚀",
-  personality: "silly",
-};
-
-const MOCK_HISTORY_ENTRIES = [
-  {
-    hash: "abc1234",
-    title: "feat: add development history route",
-    date: "2026-04-10T12:00:00Z",
-    author: "alice",
-  },
-];
-
-function renderApp(initialEntries: string[] = ["/"]) {
+function renderApp(initialEntries: string[] = ['/']) {
   return render(
     <MemoryRouter initialEntries={initialEntries}>
       <App />
@@ -28,134 +12,82 @@ function renderApp(initialEntries: string[] = ["/"]) {
   );
 }
 
-describe("App", () => {
+function mockRandomSequence(values: number[]) {
+  const sequence = [...values];
+
+  vi.spyOn(Math, 'random').mockImplementation(() => sequence.shift() ?? 0.9);
+}
+
+describe('App', () => {
   beforeEach(() => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockImplementation((input: string | URL | Request) => {
-        const url = String(input);
-
-        if (url === "/api/motivate") {
-          return Promise.resolve({
-            ok: true,
-            json: async () => MOCK_RESPONSE,
-          });
-        }
-
-        if (url === "http://localhost:3001/api/development-history") {
-          return Promise.resolve({
-            ok: true,
-            json: async () => MOCK_HISTORY_ENTRIES,
-          });
-        }
-
-        return Promise.resolve({ ok: false, status: 404 });
-      }),
-    );
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
+    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
-  it("renders HuMotivatoren heading", () => {
+  it('renders the Snake demo and score', () => {
+    mockRandomSequence([0.9, 0.9]);
+
     renderApp();
-    expect(screen.getByText(/HuMotivatoren/i)).toBeInTheDocument();
+
+    expect(screen.getByText(/Nyan Snake/i)).toBeInTheDocument();
+    expect(screen.getByTestId('snake-board')).toHaveAttribute('data-score', '0');
+    expect(screen.getByTestId('snake-board')).toHaveAttribute('data-direction', 'right');
   });
 
-  it("renders the task input field", () => {
+  it('prevents reversing directly into itself', () => {
+    mockRandomSequence([0.9, 0.9]);
+
     renderApp();
-    const input = screen.getByRole("textbox");
-    expect(input).toBeInTheDocument();
+
+    const board = screen.getByTestId('snake-board');
+
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    expect(board).toHaveAttribute('data-direction', 'right');
+
+    fireEvent.keyDown(window, { key: 'ArrowUp' });
+    expect(board).toHaveAttribute('data-direction', 'up');
   });
 
-  it("renders the submit button", () => {
-    renderApp();
-    expect(
-      screen.getByRole("button", { name: /start mission/i }),
-    ).toBeInTheDocument();
-  });
+  it('grows when eating food', async () => {
+    mockRandomSequence([0.5, 0.5, 0.8, 0.8]);
 
-  it("navigates from the home page to development history", async () => {
     renderApp();
 
-    fireEvent.click(screen.getByRole("link", { name: /development history/i }));
+    const board = screen.getByTestId('snake-board');
 
-    expect(screen.getByText(/development_history/i)).toBeInTheDocument();
+    expect(board).toHaveAttribute('data-length', '3');
 
-    await waitFor(() => {
-      expect(
-        screen.getByRole("link", { name: /feat: add development history route/i }),
-      ).toBeInTheDocument();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(150);
     });
+
+    expect(board).toHaveAttribute('data-score', '1');
+    expect(board).toHaveAttribute('data-length', '4');
   });
 
-  it("renders personality buttons", () => {
-    renderApp();
-    expect(screen.getByRole("button", { name: "Useriøs Litt kaos, mye sjarm" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Seriøs Fokus og struktur" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Sport Full energi" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Nerd Presisjon og fakta" })).toBeInTheDocument();
-  });
+  it('shows game over after a collision and can restart', async () => {
+    mockRandomSequence([0.9, 0.1]);
 
-  it("shows motivation result after valid submission", async () => {
     renderApp();
-    const input = screen.getByRole("textbox");
-    fireEvent.change(input, { target: { value: "lese nyheter" } });
-    fireEvent.click(screen.getByRole("button", { name: /start mission/i }));
 
-    await waitFor(() => {
-      expect(screen.getByText(/Du klarer det/i)).toBeInTheDocument();
+    const board = screen.getByTestId('snake-board');
+
+    fireEvent.keyDown(window, { key: 'ArrowUp' });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(150 * 8);
     });
-  });
 
-  it("does not crash on empty submit", () => {
-    renderApp();
-    expect(() => {
-      fireEvent.click(screen.getByRole("button", { name: /start mission/i }));
-    }).not.toThrow();
-  });
+    expect(board).toHaveAttribute('data-status', 'gameover');
+    expect(screen.getByText(/game over/i)).toBeInTheDocument();
 
-  it("displays the emoji from response", async () => {
-    renderApp();
-    fireEvent.change(screen.getByRole("textbox"), {
-      target: { value: "hackathon" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /start mission/i }));
+    fireEvent.click(screen.getByRole('button', { name: /restart game/i }));
 
-    await waitFor(() => {
-      expect(screen.getByText("🚀")).toBeInTheDocument();
-    });
-  });
-
-  it("renders the chaos dashboard route", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          locationName: "Gran Canaria",
-          latitude: 27.9206,
-          longitude: -15.5477,
-          temperature: 25,
-          windSpeed: 12,
-          precipitation: 0,
-          weatherCode: 0,
-          summary: "Klar himmel, nesten mistenkelig bra forhold.",
-          chaosLevel: 18,
-          verdict: "Optimal dag for å late som du har full kontroll.",
-          recommendedAction: "Del oppgaven og sett en tydelig første milepæl.",
-        }),
-      }),
-    );
-
-    render(
-      <MemoryRouter initialEntries={["/chaos"]}>
-        <App />
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByText(/Chaos Dashboard/i)).toBeInTheDocument();
-    expect(await screen.findByText(/Gran Canaria/i)).toBeInTheDocument();
+    expect(board).toHaveAttribute('data-status', 'playing');
+    expect(board).toHaveAttribute('data-score', '0');
   });
 });
