@@ -48,12 +48,11 @@ const QUOTES: Record<PersonalityOption, { content: string; author: string }[]> =
   ],
 };
 
-/* ── API helpers (used by TanStack mutations/queries) ── */
+/* ── API helpers ── */
 async function fetchMotivation(req: MotivationRequest): Promise<MotivationResponse> {
   const res = await fetch('/api/motivate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    // Input is already trimmed + length-validated client-side; server validates again
     body: JSON.stringify(req),
   });
   if (!res.ok) {
@@ -81,16 +80,58 @@ async function fetchCatData() {
   };
 }
 
-/* ── App ── */
+/* ══════════════════════════════════════════
+   App — shared state lives here so the form
+   (in Sitater tab) and results (in Motivasjon
+   tab) can both read the same data.
+══════════════════════════════════════════ */
 export default function App() {
-  const [activeTab, setActiveTab] = useState<Tab>('motivate');
+  const [activeTab, setActiveTab] = useState<Tab>('quotes');
   const tabPanelId = useId();
+
+  // Shared form state
+  const [task, setTask] = useState('');
+  const [personality, setPersonality] = useState<PersonalityOption>('silly');
+
+  // Cat query — enabled whenever input has a cat word
+  const hasCat = CAT_REGEX.test(task);
+  const catQuery = useQuery({
+    queryKey: ['cat', task],
+    queryFn: fetchCatData,
+    enabled: hasCat,
+    staleTime: 60_000,
+  });
+
+  // Motivation mutation
+  const motivationMutation = useMutation({ mutationFn: fetchMotivation });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = task.trim();
+    if (!trimmed || trimmed.length > 280) return;
+    motivationMutation.mutate(
+      { task: trimmed, personality },
+      {
+        // Auto-navigate to results tab when done
+        onSuccess: () => setActiveTab('motivate'),
+      },
+    );
+  };
 
   return (
     <div className="app-shell">
       <div className="orb orb-1" aria-hidden="true" />
       <div className="orb orb-2" aria-hidden="true" />
       <div className="orb orb-3" aria-hidden="true" />
+
+      {/* Cat background overlay */}
+      {catQuery.data?.imageUrl && (
+        <div
+          className="cat-bg visible"
+          style={{ backgroundImage: `url(${catQuery.data.imageUrl})` }}
+          aria-hidden="true"
+        />
+      )}
 
       <div className="app-container">
         <header className="app-header">
@@ -103,8 +144,8 @@ export default function App() {
         {/* ── Tab bar ── */}
         <nav className="tab-bar" role="tablist" aria-label="Seksjoner">
           {([
-            { id: 'motivate' as Tab, label: '💪 Motivér meg', desc: 'Motivasjon og statistikk' },
-            { id: 'quotes'   as Tab, label: '💬 Sitater',     desc: 'Inspirerende sitater' },
+            { id: 'quotes'   as Tab, label: '💬 Sitater',     desc: 'Skriv inn og se sitater' },
+            { id: 'motivate' as Tab, label: '💪 Motivasjon',  desc: 'Resultater og statistikk' },
           ] as const).map((tab) => (
             <button
               key={tab.id}
@@ -121,23 +162,42 @@ export default function App() {
           ))}
         </nav>
 
-        {/* ── Panels ── */}
         <main>
-          <div
-            role="tabpanel"
-            id={`${tabPanelId}-motivate`}
-            aria-labelledby="tab-motivate"
-            hidden={activeTab !== 'motivate'}
-          >
-            {activeTab === 'motivate' && <MotivatePanel />}
-          </div>
+          {/* ── Tab 1: Sitater + Form ── */}
           <div
             role="tabpanel"
             id={`${tabPanelId}-quotes`}
             aria-labelledby="tab-quotes"
             hidden={activeTab !== 'quotes'}
           >
-            {activeTab === 'quotes' && <QuotesPanel />}
+            {activeTab === 'quotes' && (
+              <SitaterPanel
+                task={task}
+                setTask={setTask}
+                personality={personality}
+                setPersonality={setPersonality}
+                catQuery={catQuery}
+                motivationMutation={motivationMutation}
+                onSubmit={handleSubmit}
+              />
+            )}
+          </div>
+
+          {/* ── Tab 2: Results + Stats ── */}
+          <div
+            role="tabpanel"
+            id={`${tabPanelId}-motivate`}
+            aria-labelledby="tab-motivate"
+            hidden={activeTab !== 'motivate'}
+          >
+            {activeTab === 'motivate' && (
+              <MotivatePanel
+                task={task}
+                catQuery={catQuery}
+                motivationMutation={motivationMutation}
+                onGoToForm={() => setActiveTab('quotes')}
+              />
+            )}
           </div>
         </main>
       </div>
@@ -146,61 +206,53 @@ export default function App() {
 }
 
 /* ══════════════════════════════════════════
-   TAB 1 — Motivate + Statistics
+   TAB 1 — Sitater: form at top + quotes below
 ══════════════════════════════════════════ */
-function MotivatePanel() {
-  const [task, setTask] = useState('');
-  const [personality, setPersonality] = useState<PersonalityOption>('silly');
+interface SitaterPanelProps {
+  task: string;
+  setTask: (v: string) => void;
+  personality: PersonalityOption;
+  setPersonality: (v: PersonalityOption) => void;
+  catQuery: ReturnType<typeof useQuery<Awaited<ReturnType<typeof fetchCatData>>>>;
+  motivationMutation: ReturnType<typeof useMutation<MotivationResponse, Error, MotivationRequest>>;
+  onSubmit: (e: React.FormEvent) => void;
+}
+
+function SitaterPanel({
+  task, setTask, personality, setPersonality,
+  catQuery, motivationMutation, onSubmit,
+}: SitaterPanelProps) {
   const inputId = useId();
-
-  // Cat data query — only enabled when input contains a cat word
-  const hasCat = CAT_REGEX.test(task);
-  const catQuery = useQuery({
-    queryKey: ['cat', task],
-    queryFn: fetchCatData,
-    enabled: hasCat,
-    staleTime: 60_000,
-  });
-
-  // Motivation mutation (POST, not a GET query)
-  const motivationMutation = useMutation({
-    mutationFn: fetchMotivation,
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = task.trim();
-    if (!trimmed || trimmed.length > 280) return;
-    motivationMutation.mutate({ task: trimmed, personality });
-  };
-
-  const result = motivationMutation.data;
+  const [quotePersonality, setQuotePersonality] = useState<PersonalityOption>('silly');
+  const [currentIdx, setCurrentIdx] = useState(0);
   const isLoading = motivationMutation.isPending;
   const errorMsg = motivationMutation.error?.message;
 
+  const handlePersonalityChange = (p: PersonalityOption) => {
+    setQuotePersonality(p);
+    setCurrentIdx(0);
+  };
+
+  const quotes = QUOTES[quotePersonality];
+  const quote = quotes[currentIdx];
+  const next = () => setCurrentIdx((i) => (i + 1) % quotes.length);
+  const prev = () => setCurrentIdx((i) => (i - 1 + quotes.length) % quotes.length);
+
   return (
     <>
-      {/* Cat background overlay */}
-      {catQuery.data?.imageUrl && (
-        <div
-          className="cat-bg visible"
-          style={{ backgroundImage: `url(${catQuery.data.imageUrl})` }}
-          aria-hidden="true"
-        />
-      )}
-
+      {/* ── Motivasjon form ── */}
       <div className="glass-card">
-        <form onSubmit={handleSubmit} noValidate>
+        <h2 className="panel-title">💪 Gi meg motivasjon</h2>
+        <p className="panel-subtitle">Fortell hva du skal gjøre, og trykk på knappen</p>
+
+        <form onSubmit={onSubmit} noValidate className="mt-2">
           <label htmlFor={inputId} className="field-label">Hva skal du gjøre?</label>
           <input
             id={inputId}
             type="text"
             className="task-input"
             value={task}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val.length <= 280) setTask(val);
-            }}
+            onChange={(e) => { if (e.target.value.length <= 280) setTask(e.target.value); }}
             placeholder="F.eks. 'lese nyheter' eller 'trene'"
             disabled={isLoading}
             maxLength={280}
@@ -214,7 +266,10 @@ function MotivatePanel() {
           {/* Cat info card */}
           {catQuery.data?.imageUrl && (
             <div className="cat-card mt-2" role="region" aria-label="Katteinformasjon">
-              <img src={catQuery.data.imageUrl} alt={catQuery.data.breed ? `${catQuery.data.breed.name} katt` : 'Søt katt'} />
+              <img
+                src={catQuery.data.imageUrl}
+                alt={catQuery.data.breed ? `${catQuery.data.breed.name} katt` : 'Søt katt'}
+              />
               <div>
                 {catQuery.data.breed && (
                   <>
@@ -257,7 +312,7 @@ function MotivatePanel() {
             disabled={isLoading || !task.trim()}
             aria-busy={isLoading}
           >
-            {isLoading ? '⏳ Tenker...' : 'Gi meg motivasjon! 💪'}
+            {isLoading ? '⏳ Sender...' : 'Gi meg motivasjon! 💪'}
           </button>
         </form>
 
@@ -268,7 +323,93 @@ function MotivatePanel() {
         )}
       </div>
 
-      {/* Skeleton while loading */}
+      {/* ── Quotes browser ── */}
+      <div className="glass-card mt-3">
+        <h2 className="panel-title">💬 Inspirerende sitater</h2>
+        <p className="panel-subtitle">Velg kategori og bla gjennom sitater</p>
+
+        <fieldset className="personality-fieldset mt-2">
+          <legend className="field-label">Kategori:</legend>
+          <div className="personality-group">
+            {PERSONALITIES.map(({ value, label, emoji }) => (
+              <button
+                key={value}
+                type="button"
+                className={`personality-btn${quotePersonality === value ? ' active' : ''}`}
+                aria-pressed={quotePersonality === value}
+                onClick={() => handlePersonalityChange(value)}
+              >
+                <span aria-hidden="true">{emoji}</span> {label}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
+        <div className="quote-display mt-3" aria-live="polite" aria-atomic="true">
+          <blockquote className="quote-blockquote">
+            <p className="quote-text">"{quote.content}"</p>
+            <footer className="quote-footer"><cite>— {quote.author}</cite></footer>
+          </blockquote>
+          <div className="quote-nav" role="group" aria-label="Naviger sitater">
+            <button type="button" className="quote-nav-btn" onClick={prev} aria-label="Forrige sitat">← Forrige</button>
+            <span className="quote-counter" aria-live="polite">{currentIdx + 1} / {quotes.length}</span>
+            <button type="button" className="quote-nav-btn" onClick={next} aria-label="Neste sitat">Neste →</button>
+          </div>
+        </div>
+
+        <section className="quotes-list mt-3" aria-label="Alle sitater i kategorien">
+          <h3 className="field-label">Alle i kategorien:</h3>
+          <ol className="quotes-ol">
+            {quotes.map((q, i) => (
+              <li
+                key={i}
+                className={`quotes-li${i === currentIdx ? ' current' : ''}`}
+                aria-current={i === currentIdx ? 'true' : undefined}
+              >
+                <button type="button" className="quote-list-btn" onClick={() => setCurrentIdx(i)}>
+                  <span className="quote-list-text">"{q.content}"</span>
+                  <span className="quote-list-author">— {q.author}</span>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </div>
+    </>
+  );
+}
+
+/* ══════════════════════════════════════════
+   TAB 2 — Motivasjon: results + stats
+══════════════════════════════════════════ */
+interface MotivatePanelProps {
+  task: string;
+  catQuery: ReturnType<typeof useQuery<Awaited<ReturnType<typeof fetchCatData>>>>;
+  motivationMutation: ReturnType<typeof useMutation<MotivationResponse, Error, MotivationRequest>>;
+  onGoToForm: () => void;
+}
+
+function MotivatePanel({ task, catQuery, motivationMutation, onGoToForm }: MotivatePanelProps) {
+  const result = motivationMutation.data;
+  const isLoading = motivationMutation.isPending;
+
+  if (!result && !isLoading) {
+    return (
+      <div className="glass-card" style={{ textAlign: 'center' }}>
+        <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>💡</p>
+        <h2 className="panel-title" style={{ marginBottom: '0.4rem' }}>Ingen resultater ennå</h2>
+        <p className="panel-subtitle" style={{ marginBottom: '1.5rem' }}>
+          Gå til <strong>Sitater</strong>-fanen, skriv inn en oppgave og klikk på knappen.
+        </p>
+        <button type="button" className="submit-btn" onClick={onGoToForm}>
+          ← Gå til skjemaet
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <>
       {isLoading && (
         <div className="result-card" aria-busy="true" aria-label="Laster motivasjon...">
           <div className="skeleton-line wide" />
@@ -279,7 +420,6 @@ function MotivatePanel() {
         </div>
       )}
 
-      {/* Result */}
       {result && !isLoading && (
         <article className="result-card" aria-label="Motivasjonssvar">
           <span className="result-emoji" aria-hidden="true">{result.emoji}</span>
@@ -314,114 +454,20 @@ function MotivatePanel() {
               )}
             </div>
           )}
+
+          <div className="mt-3" style={{ textAlign: 'center' }}>
+            <button type="button" className="submit-btn" style={{ width: 'auto', padding: '0.7rem 1.5rem' }} onClick={onGoToForm}>
+              ← Ny motivasjon
+            </button>
+          </div>
         </article>
       )}
 
-      {/* Statistics — shown as soon as user types */}
       {task.trim() && (
         <section className="mt-3" aria-label="Statistikk">
           <IrrelevantStats inputText={task} />
         </section>
       )}
     </>
-  );
-}
-
-/* ══════════════════════════════════════════
-   TAB 2 — Quotes
-══════════════════════════════════════════ */
-function QuotesPanel() {
-  const [activePersonality, setActivePersonality] = useState<PersonalityOption>('silly');
-  const [currentIdx, setCurrentIdx] = useState(0);
-
-  const quotes = QUOTES[activePersonality];
-  const quote = quotes[currentIdx];
-
-  const handlePersonalityChange = (p: PersonalityOption) => {
-    setActivePersonality(p);
-    setCurrentIdx(0);
-  };
-
-  const next = () => setCurrentIdx((i) => (i + 1) % quotes.length);
-  const prev = () => setCurrentIdx((i) => (i - 1 + quotes.length) % quotes.length);
-
-  return (
-    <div className="glass-card">
-      <h2 className="panel-title">💬 Inspirerende sitater</h2>
-      <p className="panel-subtitle">Velg kategori og bla gjennom sitater</p>
-
-      {/* Personality filter */}
-      <fieldset className="personality-fieldset mt-2">
-        <legend className="field-label">Kategori:</legend>
-        <div className="personality-group">
-          {PERSONALITIES.map(({ value, label, emoji }) => (
-            <button
-              key={value}
-              type="button"
-              className={`personality-btn${activePersonality === value ? ' active' : ''}`}
-              aria-pressed={activePersonality === value}
-              onClick={() => handlePersonalityChange(value)}
-            >
-              <span aria-hidden="true">{emoji}</span> {label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-
-      {/* Quote display */}
-      <div className="quote-display mt-3" aria-live="polite" aria-atomic="true">
-        <blockquote className="quote-blockquote">
-          <p className="quote-text">"{quote.content}"</p>
-          <footer className="quote-footer">
-            <cite>— {quote.author}</cite>
-          </footer>
-        </blockquote>
-
-        <div className="quote-nav" role="group" aria-label="Naviger sitater">
-          <button
-            type="button"
-            className="quote-nav-btn"
-            onClick={prev}
-            aria-label="Forrige sitat"
-          >
-            ← Forrige
-          </button>
-          <span className="quote-counter" aria-live="polite">
-            {currentIdx + 1} / {quotes.length}
-          </span>
-          <button
-            type="button"
-            className="quote-nav-btn"
-            onClick={next}
-            aria-label="Neste sitat"
-          >
-            Neste →
-          </button>
-        </div>
-      </div>
-
-      {/* All quotes list */}
-      <section className="quotes-list mt-3" aria-label="Alle sitater i kategorien">
-        <h3 className="field-label">Alle i kategorien:</h3>
-        <ol className="quotes-ol">
-          {quotes.map((q, i) => (
-            <li
-              key={i}
-              className={`quotes-li${i === currentIdx ? ' current' : ''}`}
-              aria-current={i === currentIdx ? 'true' : undefined}
-            >
-              <button
-                type="button"
-                className="quote-list-btn"
-                onClick={() => setCurrentIdx(i)}
-              >
-                <span className="quote-list-text">"{q.content}"</span>
-                <span className="quote-list-author">— {q.author}</span>
-              </button>
-            </li>
-          ))}
-        </ol>
-      </section>
-    </div>
   );
 }
