@@ -19,14 +19,23 @@ const FAKE_INDEX = [
 ];
 
 describe("DevelopmentHistory", () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => FAKE_INDEX,
-      }),
-    );
+    fetchMock = vi.fn().mockImplementation((input: string | URL | Request) => {
+      const url = String(input);
+
+      if (url === "http://localhost:3001/api/development-history") {
+        return Promise.resolve({
+          ok: true,
+          json: async () => FAKE_INDEX,
+        });
+      }
+
+      return Promise.resolve({ ok: false, status: 404 });
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
   });
 
   afterEach(() => {
@@ -39,16 +48,38 @@ describe("DevelopmentHistory", () => {
         <DevelopmentHistory />
       </MemoryRouter>,
     );
+
     expect(screen.getByText(/development_history/i)).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText(/feat: add login page/i)).toBeInTheDocument();
+    });
   });
 
   it("shows a loading message initially", () => {
+    fetchMock.mockImplementationOnce(() => new Promise(() => {}));
+
     render(
       <MemoryRouter>
         <DevelopmentHistory />
       </MemoryRouter>,
     );
+
     expect(screen.getByText(/loading entries/i)).toBeInTheDocument();
+  });
+
+  it("requests the backend development history endpoint", async () => {
+    render(
+      <MemoryRouter>
+        <DevelopmentHistory />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "http://localhost:3001/api/development-history",
+      );
+    });
   });
 
   it("renders a link for each entry after load", async () => {
@@ -101,10 +132,7 @@ describe("DevelopmentHistory", () => {
   });
 
   it("shows an error message when fetch fails", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({ ok: false, status: 404 }),
-    );
+    fetchMock.mockResolvedValueOnce({ ok: false, status: 404 });
 
     render(
       <MemoryRouter>

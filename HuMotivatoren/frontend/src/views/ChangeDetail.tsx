@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { getDevelopmentHistoryDetail } from "../services/api";
+import type { DevelopmentHistoryDetail } from "../types";
 import "../matrix.css";
-
-interface ChangeEntry {
-  hash: string;
-  title: string;
-  date: string;
-  author: string;
-}
 
 /**
  * Minimal markdown-to-HTML renderer covering the subset used in change files:
@@ -38,7 +33,6 @@ function renderMarkdown(md: string): string {
   for (const rawLine of lines) {
     const line = rawLine;
 
-    // fenced code block
     if (line.startsWith("```")) {
       if (!inCode) {
         closeList();
@@ -56,7 +50,6 @@ function renderMarkdown(md: string): string {
       continue;
     }
 
-    // headings
     const h3 = line.match(/^### (.+)/);
     const h2 = line.match(/^## (.+)/);
     const h1 = line.match(/^# (.+)/);
@@ -76,14 +69,12 @@ function renderMarkdown(md: string): string {
       continue;
     }
 
-    // hr
     if (/^---+$/.test(line.trim())) {
       closeList();
       out.push("<hr />");
       continue;
     }
 
-    // unordered list
     const ul = line.match(/^[-*] (.+)/);
     if (ul) {
       if (inList !== "ul") {
@@ -95,7 +86,6 @@ function renderMarkdown(md: string): string {
       continue;
     }
 
-    // ordered list
     const ol = line.match(/^\d+\. (.+)/);
     if (ol) {
       if (inList !== "ol") {
@@ -107,14 +97,12 @@ function renderMarkdown(md: string): string {
       continue;
     }
 
-    // blank line
     if (line.trim() === "") {
       closeList();
       out.push("");
       continue;
     }
 
-    // paragraph
     closeList();
     out.push(`<p>${inlineFormat(line)}</p>`);
   }
@@ -134,37 +122,43 @@ function formatDate(iso: string): string {
 export default function ChangeDetail() {
   const { hash } = useParams<{ hash: string }>();
   const [html, setHtml] = useState<string | null>(null);
-  const [meta, setMeta] = useState<ChangeEntry | null>(null);
+  const [entry, setEntry] = useState<DevelopmentHistoryDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!hash) return;
+    if (!hash) {
+      setLoading(false);
+      setError("Missing change hash");
+      return;
+    }
+
+    let cancelled = false;
 
     const loadEntry = async () => {
       try {
-        const [mdRes, idxRes] = await Promise.all([
-          fetch(`/changes/${hash}.md`),
-          fetch("/changes/index.json"),
-        ]);
+        const detail = await getDevelopmentHistoryDetail(hash);
 
-        if (!mdRes.ok) throw new Error(`Change file not found: ${hash}.md`);
-        const md = await mdRes.text();
-        setHtml(renderMarkdown(md));
-
-        if (idxRes.ok) {
-          const index: ChangeEntry[] = await idxRes.json();
-          const found = index.find((e) => e.hash === hash);
-          if (found) setMeta(found);
+        if (!cancelled) {
+          setEntry(detail);
+          setHtml(renderMarkdown(detail.content));
         }
       } catch (err) {
-        setError(String(err));
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : String(err));
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     loadEntry();
+
+    return () => {
+      cancelled = true;
+    };
   }, [hash]);
 
   return (
@@ -190,11 +184,11 @@ export default function ChangeDetail() {
 
       {!loading && !error && (
         <div className="matrix-detail">
-          {meta && (
+          {entry && (
             <div className="matrix-meta">
-              <span>{formatDate(meta.date)}</span>
-              <span>{meta.author}</span>
-              <span>{meta.hash}</span>
+              <span>{formatDate(entry.date)}</span>
+              <span>{entry.author}</span>
+              <span>{entry.hash}</span>
             </div>
           )}
           <div

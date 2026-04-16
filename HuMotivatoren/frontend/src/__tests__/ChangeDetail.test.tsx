@@ -19,14 +19,13 @@ Added the login page with form validation.
 - Added route /login
 `;
 
-const FAKE_INDEX = [
-  {
-    hash: "abc1234",
-    title: "feat: add login page",
-    date: "2026-04-10T12:00:00Z",
-    author: "alice",
-  },
-];
+const FAKE_ENTRY = {
+  hash: "abc1234",
+  title: "feat: add login page",
+  date: "2026-04-10T12:00:00Z",
+  author: "alice",
+  content: FAKE_MARKDOWN,
+};
 
 function renderWithHash(hash: string) {
   return render(
@@ -39,35 +38,59 @@ function renderWithHash(hash: string) {
 }
 
 describe("ChangeDetail", () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockImplementation((url: string) => {
-        if (url.includes("abc1234.md")) {
-          return Promise.resolve({ ok: true, text: async () => FAKE_MARKDOWN });
-        }
-        if (url.includes("index.json")) {
-          return Promise.resolve({ ok: true, json: async () => FAKE_INDEX });
-        }
-        return Promise.resolve({ ok: false, status: 404 });
-      }),
-    );
+    fetchMock = vi.fn().mockImplementation((input: string | URL | Request) => {
+      const url = String(input);
+
+      if (url === "http://localhost:3001/api/development-history/abc1234") {
+        return Promise.resolve({
+          ok: true,
+          json: async () => FAKE_ENTRY,
+        });
+      }
+
+      return Promise.resolve({ ok: false, status: 404 });
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it("renders the page heading", () => {
+  it("renders the page heading", async () => {
     renderWithHash("abc1234");
+
     expect(
       screen.getByText(/development_history :: change/i),
     ).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Added the login page with form validation/i),
+      ).toBeInTheDocument();
+    });
   });
 
   it("shows loading state initially", () => {
+    fetchMock.mockImplementationOnce(() => new Promise(() => {}));
+
     renderWithHash("abc1234");
+
     expect(screen.getByText(/loading change/i)).toBeInTheDocument();
+  });
+
+  it("requests the backend detail endpoint", async () => {
+    renderWithHash("abc1234");
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "http://localhost:3001/api/development-history/abc1234",
+      );
+    });
   });
 
   it("renders markdown content after load", async () => {
@@ -80,7 +103,7 @@ describe("ChangeDetail", () => {
     });
   });
 
-  it("renders meta information from index", async () => {
+  it("renders meta information from the API response", async () => {
     renderWithHash("abc1234");
 
     await waitFor(() => {
@@ -94,19 +117,21 @@ describe("ChangeDetail", () => {
     expect(hashes).toContain("abc1234");
   });
 
-  it("shows back link to history", () => {
+  it("shows back link to history", async () => {
     renderWithHash("abc1234");
+
     const link = screen.getByText(/\[back to history\]/i);
     expect(link.closest("a")).toHaveAttribute("href", "/development_history");
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Added the login page with form validation/i),
+      ).toBeInTheDocument();
+    });
   });
 
-  it("shows error when markdown file not found", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi
-        .fn()
-        .mockResolvedValue({ ok: false, status: 404, text: async () => "" }),
-    );
+  it("shows error when the history entry is not found", async () => {
+    fetchMock.mockResolvedValueOnce({ ok: false, status: 404 });
 
     renderWithHash("notexist");
 

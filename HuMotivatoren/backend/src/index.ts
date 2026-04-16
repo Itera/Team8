@@ -12,6 +12,7 @@ app.listen(PORT, () => {
 ✅ Server running on http://localhost:${PORT}
 📍 Health check: http://localhost:${PORT}/api/health
 📍 Motivate API: POST http://localhost:${PORT}/api/motivate
+📍 Development history API: GET http://localhost:${PORT}/api/development-history
 
 Ready to motivate! 💪
   `);

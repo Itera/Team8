@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { getDevelopmentHistory } from "../services/api";
+import type { DevelopmentHistoryEntry } from "../types";
 import "../matrix.css";
-
-interface ChangeEntry {
-  hash: string;
-  title: string;
-  date: string;
-  author: string;
-}
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -18,24 +13,38 @@ function formatDate(iso: string): string {
 }
 
 export default function DevelopmentHistory() {
-  const [entries, setEntries] = useState<ChangeEntry[]>([]);
+  const [entries, setEntries] = useState<DevelopmentHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/changes/index.json")
-      .then((r) => {
-        if (!r.ok) throw new Error(`Failed to load index: ${r.status}`);
-        return r.json() as Promise<ChangeEntry[]>;
-      })
+    let cancelled = false;
+
+    getDevelopmentHistory()
       .then((data) => {
+        if (cancelled) {
+          return;
+        }
+
         const sorted = [...data].sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
         );
         setEntries(sorted);
       })
-      .catch((err) => setError(String(err)))
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : String(err));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -44,7 +53,7 @@ export default function DevelopmentHistory() {
         <h1>development_history</h1>
         <p className="matrix-subtitle">
           {">>"} merge timeline :: {entries.length} entries :: source:
-          /changes/index.json
+          /api/development-history
         </p>
       </div>
 

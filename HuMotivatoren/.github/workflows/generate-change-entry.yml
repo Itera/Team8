@@ -43,8 +43,8 @@ jobs:
           AUTHOR="${{ steps.meta.outputs.author }}"
           SHORT_DATE=$(echo "$DATE" | cut -c1-10)
 
-          DEST="frontend/public/changes/${HASH}.md"
-          mkdir -p frontend/public/changes
+          DEST="backend/data/development-history/entries/${HASH}.md"
+          mkdir -p backend/data/development-history/entries
 
           cat > "$DEST" <<EOF
           # ${TITLE}
@@ -74,7 +74,7 @@ jobs:
           DATE="${{ steps.meta.outputs.date }}"
           AUTHOR="${{ steps.meta.outputs.author }}"
 
-          INDEX="frontend/public/changes/index.json"
+          INDEX="backend/data/development-history/index.json"
 
           # Read existing index or start with empty array
           if [ -f "$INDEX" ]; then
@@ -108,7 +108,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add frontend/public/changes/
+          git add backend/data/development-history/
           if git diff --cached --quiet; then
             echo "Nothing to commit."
           else
