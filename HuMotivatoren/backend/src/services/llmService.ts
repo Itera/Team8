@@ -1,30 +1,25 @@
+import axios from 'axios';
 import type { MotivationRequest, MotivationResponse } from '../types/index.js';
 
-/**
- * LLM Integration Point
- * 
- * This service will integrate with an LLM API (e.g., OpenAI, Azure OpenAI, Anthropic)
- * to generate contextual, humorous, and motivating content based on the user's task.
- * 
- * TODO:
- * 1. Get LLM API key from Slack/team
- * 2. Implement prompt engineering for Norwegian content
- * 3. Add content safety filtering (Itera values compliance)
- * 4. Integrate with Giphy API for relevant GIFs
- * 5. Add caching to reduce API calls
- * 
- * The LLM should generate:
- * - A motivating or funny quote related to the task
- * - An interesting (or irrelevant) fact
- * - A tip (serious or silly based on personality)
- * - An appropriate emoji
- */
+const personalityDescriptions: Record<string, string> = {
+  silly:   'useriøs, morsom og litt fjollete. Bruk humor, ordspill og morsomme fakta.',
+  serious: 'seriøs, motiverende og profesjonell. Bruk inspirerende sitater og faktabaserte tips.',
+  sports:  'sports-entusiastisk med sportsmetaforer og sportsfakta. Tenk som en trener.',
+  nerdy:   'nerdete, tech-interessert og full av referanser til programmering, sci-fi og teknologi.',
+};
 
-const placeholderResponses: Record<string, MotivationResponse> = {
+const personalityEmojis: Record<string, string> = {
+  silly:   '😜',
+  serious: '🎯',
+  sports:  '⚽',
+  nerdy:   '🤓',
+};
+
+const fallbackResponses: Record<string, MotivationResponse> = {
   silly: {
     quote: "Hvorfor gjøre i dag det du kan utsette til i morgen? ...Bare tuller, kom igjen! 💪",
     fact: "Visste du at en gjennomsnittlig person bruker 6 måneder av livet sitt på å vente på rødt lys?",
-    tip: "Prøv å gjøre oppgaven mens du står på ett ben. Det er ineffektivt, men morsomt!",
+    tip: "Prøv å gjøre oppgaven mens du lytter til episk musikk. Virker alltid!",
     gifUrl: "https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.gif",
     emoji: "😜",
     personality: "silly"
@@ -55,18 +50,78 @@ const placeholderResponses: Record<string, MotivationResponse> = {
   }
 };
 
+async function generateWithLLM(
+  task: string,
+  personality: string,
+  config: { endpoint: string; deployment: string; apiVersion: string; apiKey: string }
+): Promise<MotivationResponse> {
+  const url = `${config.endpoint}/openai/deployments/${config.deployment}/chat/completions?api-version=${config.apiVersion}`;
+
+  const systemPrompt = `Du er HuMotivatoren, en norsk motivasjonsassistent som er ${personalityDescriptions[personality] || personalityDescriptions.silly}
+Innholdet skal alltid være positivt, inkluderende og i tråd med Iteras verdier. Ingen støtende, diskriminerende eller upassende innhold.
+Svar KUN med gyldig JSON — ingen markdown, ingen forklaringer utenfor JSON-blokken.`;
+
+  const userPrompt = `Brukeren skal gjøre følgende oppgave: "${task}"
+
+Generer motivasjonsinnhold på norsk tilpasset denne oppgaven. Svar med dette JSON-formatet:
+{
+  "quote": "Et sitat eller motiverende setning som passer til oppgaven og personality",
+  "fact": "En interessant (eller useriøs) fakta relatert til oppgaven eller temaet",
+  "tip": "Et konkret tips for å gjennomføre oppgaven, i tråd med personality",
+  "emoji": "Et passende emoji-tegn"
+}`;
+
+  const response = await axios.post(
+    url,
+    {
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      max_tokens: 400,
+      temperature: personality === 'serious' ? 0.5 : 0.9,
+    },
+    {
+      headers: {
+        'api-key': config.apiKey,
+        'Content-Type': 'application/json',
+      },
+      timeout: 15000,
+    }
+  );
+
+  const content = response.data.choices?.[0]?.message?.content ?? '';
+  const cleaned = content.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+  const parsed = JSON.parse(cleaned);
+
+  return {
+    quote: parsed.quote ?? '',
+    fact: parsed.fact ?? '',
+    tip: parsed.tip ?? '',
+    emoji: parsed.emoji ?? personalityEmojis[personality] ?? '✨',
+    personality,
+    gifUrl: fallbackResponses[personality]?.gifUrl,
+  };
+}
+
 export async function getMotivation(request: MotivationRequest): Promise<MotivationResponse> {
   const personality = request.personality || 'silly';
-  
-  // TODO: Replace with actual LLM API call
-  // For now, return placeholder data based on personality
-  const response = placeholderResponses[personality] || placeholderResponses.silly;
-  
-  // Simulate async API call
-  await new Promise(resolve => setTimeout(resolve, 100));
-  
-  return {
-    ...response,
-    // In real implementation, the quote/fact/tip would be contextual to request.task
-  };
+
+  // Read env vars at call time (not module load time) to avoid ESM hoisting issue
+  const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
+  const deployment = process.env.AZURE_OPENAI_DEPLOYMENT;
+  const apiVersion = process.env.AZURE_OPENAI_API_VERSION;
+  const apiKey = process.env.AZURE_OPENAI_API_KEY;
+
+  if (!endpoint || !deployment || !apiVersion || !apiKey) {
+    console.warn('⚠️ Azure OpenAI not configured — returning fallback response');
+    return { ...fallbackResponses[personality] ?? fallbackResponses.silly };
+  }
+
+  try {
+    return await generateWithLLM(request.task, personality, { endpoint, deployment, apiVersion, apiKey });
+  } catch (error) {
+    console.error('LLM call failed, using fallback:', error instanceof Error ? error.message : error);
+    return { ...fallbackResponses[personality] ?? fallbackResponses.silly };
+  }
 }
