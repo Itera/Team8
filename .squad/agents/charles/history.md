@@ -15,3 +15,5 @@
 - 4 personality types: silly, serious, sports, nerdy
 - Branch was `feature/project-structure` (not `squad/project-structure` as initially expected)
 - 2026-04-16: llmService.test.ts coverage complete (feature/llm-quotes). 13 tests covering happy path, all 4 personalities, fallback scenarios (missing config, axios error, JSON parse), default personality. All tests passing.
+- 2026-04-16: Mouth-word fallback copy is joke-focused in backend service (`Mic check...`, `Medium signal...`), and route/service tests should assert current shipped copy to avoid false regressions.
+- 2026-04-16: `WordOfYourMouth` subtitle integration test needs deterministic RAF + canvas mocks with integer image dimensions; float dimensions can produce `Motion score: NaN` and prevent movement-triggered fetch assertions.

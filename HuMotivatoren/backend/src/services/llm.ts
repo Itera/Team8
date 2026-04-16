@@ -70,11 +70,11 @@ export async function generateMouthWord(request: MouthWordRequest): Promise<stri
           {
             role: 'system',
             content:
-              'Return one short matrix-themed line for a playful app. Plain text only. Max 12 words. Safe content only. No markdown.',
+              'Return one short, safe, family-friendly joke for live subtitles. Plain text only. Max 12 words. No markdown. No slurs, insults, sexual content, politics, religion, or violence.',
           },
           {
             role: 'user',
-            content: `mouthMoving=${request.mouthMoving}; confidence=${getConfidenceDescription(request.confidence)}; generate a short matrix-style fact or phrase.`,
+            content: `mouthMoving=${request.mouthMoving}; confidence=${getConfidenceDescription(request.confidence)}; generate one playful joke line suitable as a subtitle. Keep it easy to read and positive.`,
           },
         ],
       },
