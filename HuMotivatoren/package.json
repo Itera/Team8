@@ -13,6 +13,9 @@
     "build": "npm run build --workspace=frontend && npm run build --workspace=backend"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "@types/node": "^25.6.0",
+    "concurrently": "^9.1.2",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.4"
   }
 }
