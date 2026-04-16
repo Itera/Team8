@@ -3,6 +3,7 @@ import { Routes, Route, Link } from 'react-router-dom';
 import type { MotivationRequest, MotivationResponse } from './types';
 import DevelopmentHistory from './views/DevelopmentHistory';
 import ChangeDetail from './views/ChangeDetail';
+import WordOfYourMouth from './views/WordOfYourMouth';
 import { CowsayBubble } from './components/CowsayBubble';
 import { IrrelevantStats } from './components/IrrelevantStats';
 import './bladerunner.css';
@@ -56,6 +57,7 @@ function App() {
     <Routes>
       <Route path="/development_history/:hash" element={<ChangeDetail />} />
       <Route path="/development_history" element={<DevelopmentHistory />} />
+      <Route path="/word_of_your_mouth" element={<WordOfYourMouth />} />
       <Route
         path="*"
         element={
@@ -105,6 +107,9 @@ function Home({
         <nav className="bladerunner-nav">
           <Link to="/development_history" className="bladerunner-nav-link">
             📊 Development History
+          </Link>
+          <Link to="/word_of_your_mouth" className="bladerunner-nav-link">
+            👄 Word of Your Mouth
           </Link>
         </nav>
       </header>
