@@ -1,6 +1,15 @@
 import axios from 'axios';
 import type { MotivationRequest, MotivationResponse } from '../types/index.js';
 
+interface DevelopmentHistoryMarkdownInput {
+  hash: string;
+  title: string;
+  date: string;
+  author: string;
+  body?: string;
+  files?: string[];
+}
+
 const personalityDescriptions: Record<string, string> = {
   silly:   'useriøs, morsom og litt fjollete. Bruk humor, ordspill og morsomme fakta.',
   serious: 'seriøs, motiverende og profesjonell. Bruk inspirerende sitater og faktabaserte tips.',
@@ -49,6 +58,85 @@ const fallbackResponses: Record<string, MotivationResponse> = {
     personality: "nerdy"
   }
 };
+
+const disallowedContentPattern = /\b(hat|rasist|naz|sex|porn|kill|drep|voldtekt)\b/i;
+
+function toIsoDate(iso: string): string {
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) {
+    return iso;
+  }
+
+  return parsed.toISOString().slice(0, 10);
+}
+
+function stripCodeFence(content: string): string {
+  return content.trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/\s*```$/i, '');
+}
+
+function truncate(value: string, maxLength: number): string {
+  const normalized = value.replace(/\s+/g, ' ').trim();
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, maxLength - 1).trimEnd()}…`;
+}
+
+function sanitizeFiles(files: string[]): string[] {
+  return files
+    .map((file) => file.trim())
+    .filter((file) => file.length > 0)
+    .slice(0, 20);
+}
+
+function deterministicDevelopmentHistoryMarkdown(
+  input: DevelopmentHistoryMarkdownInput,
+): string {
+  const body = truncate(input.body ?? '', 700);
+  const files = sanitizeFiles(input.files ?? []);
+  const filesSection =
+    files.length > 0
+      ? files.map((file) => `- \`${file}\``).join('\n')
+      : '- Ingen filstier registrert for denne commiten i prosjektet.';
+
+  const summaryLine = body.length > 0
+    ? body
+    : 'Ingen commit-beskrivelse utover tittelen. Se commit diff for detaljer.';
+
+  return [
+    `# ${input.title}`,
+    '',
+    `**Hash:** ${input.hash}`,
+    `**Date:** ${toIsoDate(input.date)}`,
+    `**Author:** ${input.author}`,
+    '',
+    '## Sammendrag',
+    '',
+    summaryLine,
+    '',
+    '## Berorte filer',
+    '',
+    filesSection,
+    '',
+    '## Kilde',
+    '',
+    `Basert pa ekte git commit-metadata for \`${input.hash}\`.`,
+    '',
+  ].join('\n');
+}
+
+function isSafeMarkdownContent(markdown: string): boolean {
+  if (markdown.trim().length === 0) {
+    return false;
+  }
+
+  if (markdown.length > 10000) {
+    return false;
+  }
+
+  return !disallowedContentPattern.test(markdown);
+}
 
 async function generateWithLLM(
   task: string,
@@ -104,6 +192,55 @@ Generer motivasjonsinnhold på norsk tilpasset denne oppgaven. Svar med dette JS
   };
 }
 
+async function generateDevelopmentHistoryWithLLM(
+  input: DevelopmentHistoryMarkdownInput,
+  config: { endpoint: string; deployment: string; apiVersion: string; apiKey: string },
+): Promise<string> {
+  const url = `${config.endpoint}/openai/deployments/${config.deployment}/chat/completions?api-version=${config.apiVersion}`;
+  const files = sanitizeFiles(input.files ?? []);
+
+  const systemPrompt = [
+    'Du lager markdown for utviklingshistorikk i et norsk prosjekt.',
+    'Innholdet skal vere positivt, inkluderende og i trad med Iteras verdier.',
+    'Ingen stotende, diskriminerende eller upassende innhold.',
+    'Svar kun med markdown, uten kodeblokker rundt svaret.',
+  ].join(' ');
+
+  const userPrompt = [
+    'Lag en kort, konkret markdown-endringslogg basert pa ekte commit metadata.',
+    `Hash: ${input.hash}`,
+    `Tittel: ${input.title}`,
+    `Dato: ${toIsoDate(input.date)}`,
+    `Forfatter: ${input.author}`,
+    `Commit body: ${(input.body ?? '').trim() || 'Ingen body tilgjengelig.'}`,
+    `Berorte filer: ${files.length > 0 ? files.join(', ') : 'ingen registrert'}`,
+    'Struktur: # tittel, metadatafelter, seksjon for sammendrag, seksjon for berorte filer.',
+    'Hold teksten under 300 ord.',
+  ].join('\n');
+
+  const response = await axios.post(
+    url,
+    {
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      max_tokens: 700,
+      temperature: 0.2,
+    },
+    {
+      headers: {
+        'api-key': config.apiKey,
+        'Content-Type': 'application/json',
+      },
+      timeout: 15000,
+    },
+  );
+
+  const content = response.data.choices?.[0]?.message?.content ?? '';
+  return stripCodeFence(content);
+}
+
 export async function getMotivation(request: MotivationRequest): Promise<MotivationResponse> {
   const personality = request.personality || 'silly';
 
@@ -123,5 +260,41 @@ export async function getMotivation(request: MotivationRequest): Promise<Motivat
   } catch (error) {
     console.error('LLM call failed, using fallback:', error instanceof Error ? error.message : error);
     return { ...fallbackResponses[personality] ?? fallbackResponses.silly };
+  }
+}
+
+export async function generateDevelopmentHistoryMarkdown(
+  input: DevelopmentHistoryMarkdownInput,
+): Promise<string> {
+  const deterministicFallback = deterministicDevelopmentHistoryMarkdown(input);
+
+  const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
+  const deployment = process.env.AZURE_OPENAI_DEPLOYMENT;
+  const apiVersion = process.env.AZURE_OPENAI_API_VERSION;
+  const apiKey = process.env.AZURE_OPENAI_API_KEY;
+
+  if (!endpoint || !deployment || !apiVersion || !apiKey) {
+    return deterministicFallback;
+  }
+
+  try {
+    const generated = await generateDevelopmentHistoryWithLLM(input, {
+      endpoint,
+      deployment,
+      apiVersion,
+      apiKey,
+    });
+
+    if (!isSafeMarkdownContent(generated)) {
+      return deterministicFallback;
+    }
+
+    return generated;
+  } catch (error) {
+    console.error(
+      'Development-history markdown generation failed, using fallback:',
+      error instanceof Error ? error.message : error,
+    );
+    return deterministicFallback;
   }
 }

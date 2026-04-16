@@ -6,7 +6,7 @@ healthRouter.get('/', (_req, res) => {
   res.json({
     status: 'ok',
     service: 'humotivatoren-backend',
-    message: 'Alt er klart for motivasjon og kaos',
+      message: 'HuMotivatoren backend is healthy and ready.',
     timestamp: new Date().toISOString(),
   });
 });
