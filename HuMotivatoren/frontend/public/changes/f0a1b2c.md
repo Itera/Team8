@@ -2,7 +2,7 @@
 
 **Hash:** f0a1b2c  
 **Date:** 2026-04-07  
-**Author:** marcin  
+**Author:** marcin
 
 ## Summary
 

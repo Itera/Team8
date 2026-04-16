@@ -39,10 +39,8 @@ text, monospace font.
 - [-] 5. Update `frontend/src/main.tsx` to wrap the app in `BrowserRouter`
 - [~] 5. Update `frontend/src/main.tsx` to wrap the app in `BrowserRouter`
 - [x] 5. Update `frontend/src/main.tsx` to wrap the app in `BrowserRouter`
-- [-] 6. Update `frontend/src/App.tsx` to add `Routes` and a nav link to
-        - [~] 6. Update `frontend/src/App.tsx` to add `Routes` and a nav link to
-        - [x] 6. Update `frontend/src/App.tsx` to add `Routes` and a nav link to
-         `/development_history`
+- [-] 6. Update `frontend/src/App.tsx` to add `Routes` and a nav link to - [~] 6. Update `frontend/src/App.tsx` to add `Routes` and a nav link to - [x] 6. Update `frontend/src/App.tsx` to add `Routes` and a nav link to
+  `/development_history`
 
 ### Frontend - pages
 
@@ -55,20 +53,16 @@ text, monospace font.
 
 ### Styles
 
-- [-] 9. Create `frontend/src/matrix.css` with the Matrix style definitions
-        - [~] 9. Create `frontend/src/matrix.css` with the Matrix style definitions
-        - [x] 9. Create `frontend/src/matrix.css` with the Matrix style definitions
-         (black bg, green text, monospace, scanline glow effect)
+- [-] 9. Create `frontend/src/matrix.css` with the Matrix style definitions - [~] 9. Create `frontend/src/matrix.css` with the Matrix style definitions - [x] 9. Create `frontend/src/matrix.css` with the Matrix style definitions
+  (black bg, green text, monospace, scanline glow effect)
 - [-] 10. Apply Matrix styles to both new pages
 - [x] 10. Apply Matrix styles to both new pages
 
 ### GitHub Actions
 
-- [-] 11. Create `.github/workflows/generate-change-entry.yml` that fires on
-          - [~] 11. Create `.github/workflows/generate-change-entry.yml` that fires on
-          - [x] 11. Create `.github/workflows/generate-change-entry.yml` that fires on
-          every push to `main`, reads the latest merge commit message, generates
-          a markdown file, and updates `index.json`
+- [-] 11. Create `.github/workflows/generate-change-entry.yml` that fires on - [~] 11. Create `.github/workflows/generate-change-entry.yml` that fires on - [x] 11. Create `.github/workflows/generate-change-entry.yml` that fires on
+  every push to `main`, reads the latest merge commit message, generates
+  a markdown file, and updates `index.json`
 
 ### Tests
 
@@ -85,3 +79,4 @@ text, monospace font.
 - [x] 14. Verify all existing tests still pass
 - [-] 15. Commit and open PR to `main`
 - [~] 15. Commit and open PR to `main`
+- [x] 15. Commit and open PR to `main`

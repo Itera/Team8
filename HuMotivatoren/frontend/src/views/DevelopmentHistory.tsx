@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import '../matrix.css';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import "../matrix.css";
 
 interface ChangeEntry {
   hash: string;
@@ -12,8 +12,8 @@ interface ChangeEntry {
 function formatDate(iso: string): string {
   const d = new Date(iso);
   const yyyy = d.getUTCFullYear();
-  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const dd = String(d.getUTCDate()).padStart(2, '0');
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(d.getUTCDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
 }
 
@@ -23,14 +23,14 @@ export default function DevelopmentHistory() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/changes/index.json')
+    fetch("/changes/index.json")
       .then((r) => {
         if (!r.ok) throw new Error(`Failed to load index: ${r.status}`);
         return r.json() as Promise<ChangeEntry[]>;
       })
       .then((data) => {
         const sorted = [...data].sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
         );
         setEntries(sorted);
       })
@@ -43,7 +43,8 @@ export default function DevelopmentHistory() {
       <div className="matrix-header">
         <h1>development_history</h1>
         <p className="matrix-subtitle">
-          {'>>'} merge timeline :: {entries.length} entries :: source: /changes/index.json
+          {">>"} merge timeline :: {entries.length} entries :: source:
+          /changes/index.json
         </p>
       </div>
 
@@ -53,12 +54,12 @@ export default function DevelopmentHistory() {
         </Link>
       </nav>
 
-      {loading && (
-        <p className="matrix-loading">{'>'} loading entries...</p>
-      )}
+      {loading && <p className="matrix-loading">{">"} loading entries...</p>}
 
       {error && (
-        <p className="matrix-error">{'[ERROR]'} {error}</p>
+        <p className="matrix-error">
+          {"[ERROR]"} {error}
+        </p>
       )}
 
       {!loading && !error && (

@@ -1,6 +1,6 @@
 /* Matrix theme - late 1980s terminal aesthetic */
 
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap");
 
 :root {
   --matrix-bg: #000000;
@@ -8,7 +8,7 @@
   --matrix-green-dim: #00b32c;
   --matrix-green-glow: rgba(0, 255, 65, 0.15);
   --matrix-border: #003b00;
-  --matrix-font: 'Share Tech Mono', 'Courier New', Courier, monospace;
+  --matrix-font: "Share Tech Mono", "Courier New", Courier, monospace;
 }
 
 .matrix-page {
@@ -24,7 +24,7 @@
 
 /* scanline overlay */
 .matrix-page::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   background: repeating-linear-gradient(
@@ -68,7 +68,10 @@
   margin-bottom: 1.5rem;
   border: 1px solid var(--matrix-border);
   padding: 0.25rem 0.75rem;
-  transition: color 0.15s, border-color 0.15s, box-shadow 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .matrix-back-link:hover {
@@ -170,7 +173,7 @@
 }
 
 .matrix-detail .matrix-meta span::before {
-  content: '> ';
+  content: "> ";
 }
 
 .matrix-markdown {
@@ -189,9 +192,15 @@
   margin-bottom: 0.5rem;
 }
 
-.matrix-markdown h1 { font-size: 1.1rem; }
-.matrix-markdown h2 { font-size: 1rem; }
-.matrix-markdown h3 { font-size: 0.9rem; }
+.matrix-markdown h1 {
+  font-size: 1.1rem;
+}
+.matrix-markdown h2 {
+  font-size: 1rem;
+}
+.matrix-markdown h3 {
+  font-size: 0.9rem;
+}
 
 .matrix-markdown p {
   margin: 0.5rem 0;
