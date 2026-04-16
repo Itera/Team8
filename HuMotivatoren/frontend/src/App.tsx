@@ -8,17 +8,57 @@ import { CowsayBubble } from './components/CowsayBubble';
 import { IrrelevantStats } from './components/IrrelevantStats';
 import './bladerunner.css';
 
-// Cat words in many languages
+// Animal word detectors
 const CAT_REGEX = /\b(cat|cats|kitten|kittens|kitty|kitties|katt|katten|katter|kattene|kattunge|kattungen|kattunger|kattungene|gato|gatos|gatito|gatitos|chat|chats|chaton|chatons|katze|katzen|kätzchen|gatto|gatti|gattino|kat|katte|killing|killingen|poes|poesje|kot|koty|kotek|kissa|kissoja|猫|貓|ねこ|قطة)\b/i;
+const COW_REGEX = /\b(cow|cows|ku|kua|kuer|kuene|vache|vaches|kuh|kühe|vaca|vacas|mucca|mucche|krowa|krowy|lehmä|牛|うし|بقرة)\b/i;
 
 type PersonalityOption = NonNullable<MotivationRequest["personality"]>;
 
-const PERSONALITIES: { value: PersonalityOption; label: string }[] = [
-  { value: "silly", label: "😜 Useriøs" },
-  { value: "serious", label: "�� Seriøs" },
-  { value: "sports", label: "⚽ Sport" },
-  { value: "nerdy", label: "🤓 Nerd" },
+const PERSONALITIES: { value: PersonalityOption; label: string; description: string }[] = [
+  { value: "silly",   label: "😜 Useriøs", description: "Morsom, fjollete og full av ordspill" },
+  { value: "serious", label: "🧐 Seriøs",  description: "Profesjonell, faktabasert og inspirerende" },
+  { value: "sports",  label: "⚽ Sport",    description: "Sports-entusiastisk med trener-energi" },
+  { value: "nerdy",   label: "🤓 Nerd",     description: "Tech-nerdete med sci-fi og kode-referanser" },
 ];
+
+// ── Web Audio animal sounds ──────────────────────────────────────────
+let audioCtx: AudioContext | null = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new AudioContext();
+  return audioCtx;
+}
+function playCatSound() {
+  const ctx = getAudioCtx();
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(600, now);
+  osc.frequency.linearRampToValueAtTime(900, now + 0.15);
+  osc.frequency.linearRampToValueAtTime(500, now + 0.45);
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.4, now + 0.05);
+  gain.gain.linearRampToValueAtTime(0.4, now + 0.35);
+  gain.gain.linearRampToValueAtTime(0, now + 0.5);
+  osc.start(now); osc.stop(now + 0.5);
+}
+function playCowSound() {
+  const ctx = getAudioCtx();
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(180, now);
+  osc.frequency.linearRampToValueAtTime(120, now + 0.6);
+  osc.frequency.linearRampToValueAtTime(100, now + 0.9);
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.35, now + 0.08);
+  gain.gain.linearRampToValueAtTime(0.35, now + 0.7);
+  gain.gain.linearRampToValueAtTime(0, now + 1.0);
+  osc.start(now); osc.stop(now + 1.0);
+}
 
 function App() {
   const [task, setTask] = useState("");
@@ -31,8 +71,30 @@ function App() {
   const [catBreed, setCatBreed] = useState<{ name: string; temperament: string; description: string } | null>(null);
   const lastFetchedFor = useRef<string | null>(null);
 
+  // Track which animal sounds have been played so we only play once per word appearance
+  const playedCat = useRef(false);
+  const playedCow = useRef(false);
+
   useEffect(() => {
     const hasCat = CAT_REGEX.test(task);
+    const hasCow = COW_REGEX.test(task);
+
+    // Cat sound — play once when cat word first appears
+    if (hasCat && !playedCat.current) {
+      playedCat.current = true;
+      playCatSound();
+    } else if (!hasCat) {
+      playedCat.current = false;
+    }
+
+    // Cow sound — play once when cow word first appears
+    if (hasCow && !playedCow.current) {
+      playedCow.current = true;
+      playCowSound();
+    } else if (!hasCow) {
+      playedCow.current = false;
+    }
+
     if (hasCat && lastFetchedFor.current !== task) {
       lastFetchedFor.current = task;
       fetch('https://api.thecatapi.com/v1/images/search?has_breeds=1')
@@ -238,6 +300,10 @@ function Home({
                 ))}
               </div>
             </fieldset>
+
+            <p className="tone-description" aria-live="polite">
+              {PERSONALITIES.find(p => p.value === personality)?.description}
+            </p>
 
             <button
               type="submit"

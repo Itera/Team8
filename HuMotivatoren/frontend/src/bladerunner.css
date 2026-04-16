@@ -535,3 +535,13 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Tone description ── */
+.tone-description {
+  font-size: 0.82rem;
+  color: var(--br-orange);
+  font-style: italic;
+  margin: 0.4rem 0 0.8rem;
+  min-height: 1.2em;
+  transition: opacity 0.2s;
+}
