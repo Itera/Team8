@@ -1,0 +1,8 @@
+{
+  "instructions": [
+    "AGENTS.md",
+    ".github/agents/squad.agent.md",
+    ".squad/team.md",
+    ".squad/routing.md"
+  ]
+}
