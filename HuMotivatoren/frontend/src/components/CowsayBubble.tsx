@@ -4,13 +4,72 @@ interface CowsayBubbleProps {
   inputText: string;
 }
 
+function playMoo() {
+  try {
+    const ctx = new AudioContext();
+
+    const playTone = (
+      startTime: number,
+      duration: number,
+      startFreq: number,
+      endFreq: number,
+      gainPeak: number,
+    ) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(startFreq, startTime);
+      osc.frequency.exponentialRampToValueAtTime(endFreq, startTime + duration);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(600, startTime);
+      filter.frequency.linearRampToValueAtTime(300, startTime + duration);
+      filter.Q.value = 8;
+
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(gainPeak, startTime + 0.05);
+      gain.gain.setValueAtTime(gainPeak, startTime + duration - 0.1);
+      gain.gain.linearRampToValueAtTime(0, startTime + duration);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+    };
+
+    const now = ctx.currentTime;
+    // "M" — kort attack
+    playTone(now, 0.18, 180, 220, 0.22);
+    // "OOO" — lang glid ned (hoveddelen av MOO)
+    playTone(now + 0.15, 0.7, 220, 130, 0.28);
+
+    // Litt vibrato-effekt via en LFO på gain
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.frequency.value = 5.5;
+    lfoGain.gain.value = 0.04;
+    lfo.connect(lfoGain);
+    lfo.start(now + 0.15);
+    lfo.stop(now + 0.85);
+
+    setTimeout(() => ctx.close(), 1200);
+  } catch {
+    // Nettleser støtter ikke Web Audio API
+  }
+}
+
 export function CowsayBubble({ inputText }: CowsayBubbleProps) {
   const [art, setArt] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevArtRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!inputText.trim()) {
       setArt(null);
+      prevArtRef.current = null;
       return;
     }
 
@@ -25,6 +84,11 @@ export function CowsayBubble({ inputText }: CowsayBubbleProps) {
         });
         if (res.ok) {
           const data = await res.json();
+          // Spill moo kun når kua dukker opp for første gang eller teksten endrer seg
+          if (data.art !== prevArtRef.current) {
+            playMoo();
+            prevArtRef.current = data.art;
+          }
           setArt(data.art);
         }
       } catch {
