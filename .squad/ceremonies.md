@@ -2,6 +2,27 @@
 
 > Team meetings that happen before or after work. Each squad configures their own.
 
+## Pre-PR State Flush
+
+| Field | Value |
+|-------|-------|
+| **Trigger** | auto |
+| **When** | before |
+| **Condition** | any agent is about to open a PR (`gh pr create`) |
+| **Facilitator** | scribe |
+| **Participants** | scribe only |
+| **Time budget** | minimal (file ops only) |
+| **Enabled** | ✅ yes |
+
+**What happens:**
+1. Coordinator spawns Scribe **synchronously** with `MODE: pre-pr-flush` and the current issue number.
+2. Scribe merges decision inbox → `decisions.md`, deduplicates, then commits all `.squad/` changes to the feature branch.
+3. Only after Scribe reports success does the agent run `gh pr create`.
+
+> ⚠️ This ceremony is a hard gate. A PR MUST NOT be opened until this ceremony completes successfully. If Scribe fails, the coordinator must retry or escalate to the user — never skip.
+
+---
+
 ## Design Review
 
 | Field | Value |

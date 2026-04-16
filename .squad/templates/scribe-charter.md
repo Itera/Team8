@@ -20,6 +20,24 @@
 
 **Worktree awareness:** Use the `TEAM ROOT` provided in the spawn prompt to resolve all `.squad/` paths. If no TEAM ROOT is given, run `git rev-parse --show-toplevel` as fallback. Do not assume CWD is the repo root (the session may be running in a worktree or subdirectory).
 
+### Pre-PR Flush Mode
+
+When spawned with `MODE: pre-pr-flush` in the prompt, I run a reduced, synchronous workflow specifically designed to land `.squad/` state onto the feature branch **before** a PR is opened:
+
+1. Merge `.squad/decisions/inbox/` → `decisions.md` (same as step 2 below)
+2. Run deduplication on `decisions.md` (same as step 3 below)
+3. Commit ALL `.squad/` changes to the **current feature branch** (not main):
+   ```powershell
+   cd {team_root}
+   git add .squad/
+   git diff --cached --quiet || git commit -m "docs(squad): pre-PR flush — history and decisions for #{issue-number}"
+   ```
+4. Skip session logging and cross-agent propagation (those run after the PR is merged via the normal post-work flow).
+
+The coordinator **must spawn Scribe synchronously** (no `mode: "background"`) in pre-PR flush mode. The agent opening the PR must wait for Scribe to complete before running `gh pr create`.
+
+---
+
 After every substantial work session:
 
 1. **Log the session** to `.squad/log/{timestamp}-{topic}.md`:
