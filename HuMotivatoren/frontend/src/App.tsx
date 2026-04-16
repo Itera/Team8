@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import type { MotivationRequest, MotivationResponse } from './types';
 import DevelopmentHistory from './views/DevelopmentHistory';
@@ -7,11 +7,14 @@ import { CowsayBubble } from './components/CowsayBubble';
 import { IrrelevantStats } from './components/IrrelevantStats';
 import './bladerunner.css';
 
+// Cat words in many languages
+const CAT_REGEX = /\b(cat|cats|kitten|kittens|kitty|kitties|katt|katten|katter|kattene|kattunge|kattungen|kattunger|kattungene|gato|gatos|gatito|gatitos|chat|chats|chaton|chatons|katze|katzen|kätzchen|gatto|gatti|gattino|kat|katte|killing|killingen|poes|poesje|kot|koty|kotek|kissa|kissoja|猫|貓|ねこ|قطة)\b/i;
+
 type PersonalityOption = NonNullable<MotivationRequest["personality"]>;
 
 const PERSONALITIES: { value: PersonalityOption; label: string }[] = [
   { value: "silly", label: "😜 Useriøs" },
-  { value: "serious", label: "🧐 Seriøs" },
+  { value: "serious", label: "�� Seriøs" },
   { value: "sports", label: "⚽ Sport" },
   { value: "nerdy", label: "🤓 Nerd" },
 ];
@@ -22,6 +25,34 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MotivationResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [catImageUrl, setCatImageUrl] = useState<string | null>(null);
+  const [catFact, setCatFact] = useState<string | null>(null);
+  const [catBreed, setCatBreed] = useState<{ name: string; temperament: string; description: string } | null>(null);
+  const lastFetchedFor = useRef<string | null>(null);
+
+  useEffect(() => {
+    const hasCat = CAT_REGEX.test(task);
+    if (hasCat && lastFetchedFor.current !== task) {
+      lastFetchedFor.current = task;
+      fetch('https://api.thecatapi.com/v1/images/search?has_breeds=1')
+        .then((r) => r.json())
+        .then((data: { url: string; breeds?: { name: string; temperament: string; description: string }[] }[]) => {
+          if (data?.[0]?.url) setCatImageUrl(data[0].url);
+          const breed = data?.[0]?.breeds?.[0];
+          if (breed) setCatBreed({ name: breed.name, temperament: breed.temperament, description: breed.description });
+        })
+        .catch(() => {});
+      fetch('https://catfact.ninja/fact')
+        .then((r) => r.json())
+        .then((data: { fact: string }) => { if (data?.fact) setCatFact(data.fact); })
+        .catch(() => {});
+    } else if (!hasCat) {
+      setCatImageUrl(null);
+      setCatFact(null);
+      setCatBreed(null);
+      lastFetchedFor.current = null;
+    }
+  }, [task]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +99,9 @@ function App() {
             result={result}
             error={error}
             handleSubmit={handleSubmit}
+            catImageUrl={catImageUrl}
+            catFact={catFact}
+            catBreed={catBreed}
           />
         }
       />
@@ -84,22 +118,31 @@ interface HomeProps {
   result: MotivationResponse | null;
   error: string | null;
   handleSubmit: (e: React.FormEvent) => void;
+  catImageUrl: string | null;
+  catFact: string | null;
+  catBreed: { name: string; temperament: string; description: string } | null;
 }
 
 function Home({
-  task,
-  setTask,
-  personality,
-  setPersonality,
-  loading,
-  result,
-  error,
-  handleSubmit,
+  task, setTask, personality, setPersonality,
+  loading, result, error, handleSubmit,
+  catImageUrl, catFact, catBreed,
 }: HomeProps) {
   return (
     <div className="bladerunner-page">
       <a href="#main-content" className="skip-link">Hopp til innhold</a>
       <div className="bladerunner-scanline" />
+
+      {/* Cat photo background overlay */}
+      {catImageUrl && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundImage: `url(${catImageUrl})`,
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          opacity: 0.18, pointerEvents: 'none', zIndex: 0,
+        }} aria-hidden="true" />
+      )}
+
       <header className="bladerunner-header">
         <h1 className="bladerunner-title">HuMotivatoren</h1>
         <p className="bladerunner-subtitle">⚡ Unreasonably Relevant Motivation Engine ⚡</p>
@@ -136,6 +179,35 @@ function Home({
 
             <CowsayBubble inputText={task} />
             <IrrelevantStats inputText={task} />
+
+            {/* Cat info card — appears when a cat word is typed */}
+            {catImageUrl && (
+              <div
+                role="region"
+                aria-label="Katteinformasjon"
+                style={{
+                  background: 'rgba(0,255,255,0.07)', border: '1px solid var(--br-cyan)',
+                  borderRadius: '4px', padding: '1rem 1.25rem', marginBottom: '1rem',
+                  display: 'flex', gap: '1rem', alignItems: 'flex-start',
+                }}
+              >
+                <img
+                  src={catImageUrl}
+                  alt={catBreed ? `${catBreed.name} katt` : 'Søt katt'}
+                  style={{ width: '110px', height: '110px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0, border: '1px solid var(--br-cyan)' }}
+                />
+                <div>
+                  {catBreed && (
+                    <>
+                      <p style={{ margin: '0 0 0.2rem', fontWeight: 'bold', color: 'var(--br-cyan)', fontSize: '1rem' }}>🐱 {catBreed.name}</p>
+                      <p style={{ margin: '0 0 0.3rem', color: 'var(--br-orange)', fontSize: '0.85rem' }}>🎭 {catBreed.temperament}</p>
+                      <p style={{ margin: '0 0 0.5rem', color: 'var(--br-text)', fontSize: '0.88rem' }}>{catBreed.description}</p>
+                    </>
+                  )}
+                  {catFact && <p style={{ margin: 0, color: 'var(--br-text)', fontSize: '0.88rem', fontStyle: 'italic' }}>💡 {catFact}</p>}
+                </div>
+              </div>
+            )}
 
             <fieldset className="bladerunner-fieldset">
               <legend className="bladerunner-legend">Velg tone:</legend>
@@ -181,75 +253,59 @@ function Home({
               aria-label="Motivasjonssvar"
               aria-live="polite"
             >
-              <div
-                style={{
-                  fontSize: "4rem",
-                  textAlign: "center",
-                  marginBottom: "1rem",
-                }}
-              >
+              <div style={{ fontSize: "4rem", textAlign: "center", marginBottom: "1rem" }}>
                 {result.emoji}
               </div>
 
               <div style={{ marginBottom: "1.5rem" }}>
-                <h2
-                  style={{
-                    color: "var(--br-cyan)",
-                    marginBottom: "0.5rem",
-                    fontSize: "1.2rem",
-                  }}
-                >
+                <h2 style={{ color: "var(--br-cyan)", marginBottom: "0.5rem", fontSize: "1.2rem" }}>
                   💬 Sitat
                 </h2>
-                <p
-                  style={{
-                    fontSize: "1.3rem",
-                    fontStyle: "italic",
-                    margin: 0,
-                    color: "var(--br-text)",
-                  }}
-                >
+                <p style={{ fontSize: "1.3rem", fontStyle: "italic", margin: 0, color: "var(--br-text)" }}>
                   "{result.quote}"
                 </p>
               </div>
 
               <div style={{ marginBottom: "1.5rem" }}>
-                <h2
-                  style={{
-                    color: "var(--br-cyan)",
-                    marginBottom: "0.5rem",
-                    fontSize: "1.2rem",
-                  }}
-                >
+                <h2 style={{ color: "var(--br-cyan)", marginBottom: "0.5rem", fontSize: "1.2rem" }}>
                   📚 Fakta
                 </h2>
                 <p style={{ margin: 0, color: "var(--br-text)" }}>{result.fact}</p>
               </div>
 
               <div style={{ marginBottom: "1.5rem" }}>
-                <h2
-                  style={{
-                    color: "var(--br-cyan)",
-                    marginBottom: "0.5rem",
-                    fontSize: "1.2rem",
-                  }}
-                >
+                <h2 style={{ color: "var(--br-cyan)", marginBottom: "0.5rem", fontSize: "1.2rem" }}>
                   💡 Tips
                 </h2>
                 <p style={{ margin: 0, color: "var(--br-text)" }}>{result.tip}</p>
               </div>
 
-              {result.gifUrl && (
-                <div style={{ textAlign: "center", marginTop: "1rem" }}>
-                  <img
-                    src={result.gifUrl}
-                    alt="Motiverende GIF"
-                    style={{
-                      maxWidth: "100%",
-                      border: "2px solid var(--br-cyan)",
-                      boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                    }}
-                  />
+              {/* Cat section in result */}
+              {catImageUrl && (catBreed || catFact) && (
+                <div style={{ marginTop: '1.5rem', background: 'rgba(0,255,255,0.07)', border: '1px solid var(--br-cyan)', borderRadius: '4px', padding: '1rem' }}>
+                  <h2 style={{ color: 'var(--br-cyan)', marginBottom: '0.5rem', fontSize: '1.2rem' }}>🐱 Katte-fakta</h2>
+                  {catBreed && <p style={{ margin: '0 0 0.3rem', fontWeight: 'bold', color: 'var(--br-orange)' }}>{catBreed.name} — {catBreed.temperament}</p>}
+                  {catFact && <p style={{ margin: 0, color: 'var(--br-text)', fontStyle: 'italic' }}>{catFact}</p>}
+                </div>
+              )}
+
+              {/* GIF + cat image row */}
+              {(result.gifUrl || catImageUrl) && (
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem', flexWrap: 'wrap' }}>
+                  {result.gifUrl && (
+                    <img
+                      src={result.gifUrl}
+                      alt="Motiverende GIF"
+                      style={{ flex: '1 1 45%', maxWidth: '48%', minWidth: '200px', border: '2px solid var(--br-cyan)', objectFit: 'cover' }}
+                    />
+                  )}
+                  {catImageUrl && (
+                    <img
+                      src={catImageUrl}
+                      alt={catBreed?.name ?? 'Søt katt'}
+                      style={{ flex: '1 1 45%', maxWidth: '48%', minWidth: '200px', border: '2px solid var(--br-cyan)', objectFit: 'cover' }}
+                    />
+                  )}
                 </div>
               )}
             </section>
