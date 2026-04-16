@@ -154,61 +154,69 @@ function Home({
       </header>
 
       <div className="bladerunner-container">
-        <main id="main-content" aria-label="HuMotivatoren – motivasjonsverktøy">
-          <form
-            onSubmit={handleSubmit}
-            className="bladerunner-form"
-            aria-label="Motivasjonsskjema"
-            noValidate
-          >
-            <label htmlFor="task-input" className="bladerunner-label">
-              Hva skal du gjøre?
-            </label>
-            <input
-              id="task-input"
-              type="text"
-              value={task}
-              onChange={(e) => { if (e.target.value.length <= 280) setTask(e.target.value); }}
-              placeholder="F.eks. 'lese nyheter'"
-              disabled={loading}
-              className="bladerunner-input"
-              maxLength={280}
-              autoComplete="off"
-              aria-describedby={error ? 'motivate-error' : undefined}
-            />
+        <main id="main-content" aria-label="HuMotivatoren – motivasjonsverktøy" className="two-col-layout">
 
-            <CowsayBubble inputText={task} />
-            <IrrelevantStats inputText={task} />
+          {/* ── LEFT COLUMN: input + cowsay + cat + stats ── */}
+          <div className="col-left">
+            <form
+              onSubmit={handleSubmit}
+              className="bladerunner-form"
+              aria-label="Motivasjonsskjema"
+              noValidate
+            >
+              <label htmlFor="task-input" className="bladerunner-label">
+                Hva skal du gjøre?
+              </label>
+              <input
+                id="task-input"
+                type="text"
+                value={task}
+                onChange={(e) => { if (e.target.value.length <= 280) setTask(e.target.value); }}
+                placeholder="F.eks. 'lese nyheter'"
+                disabled={loading}
+                className="bladerunner-input"
+                maxLength={280}
+                autoComplete="off"
+                aria-describedby={error ? 'motivate-error' : undefined}
+              />
 
-            {/* Cat info card — appears when a cat word is typed */}
-            {catImageUrl && (
-              <div
-                role="region"
-                aria-label="Katteinformasjon"
-                style={{
-                  background: 'rgba(0,255,255,0.07)', border: '1px solid var(--br-cyan)',
-                  borderRadius: '4px', padding: '1rem 1.25rem', marginBottom: '1rem',
-                  display: 'flex', gap: '1rem', alignItems: 'flex-start',
-                }}
-              >
-                <img
-                  src={catImageUrl}
-                  alt={catBreed ? `${catBreed.name} katt` : 'Søt katt'}
-                  style={{ width: '110px', height: '110px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0, border: '1px solid var(--br-cyan)' }}
-                />
-                <div>
-                  {catBreed && (
-                    <>
-                      <p style={{ margin: '0 0 0.2rem', fontWeight: 'bold', color: 'var(--br-cyan)', fontSize: '1rem' }}>🐱 {catBreed.name}</p>
-                      <p style={{ margin: '0 0 0.3rem', color: 'var(--br-orange)', fontSize: '0.85rem' }}>🎭 {catBreed.temperament}</p>
-                      <p style={{ margin: '0 0 0.5rem', color: 'var(--br-text)', fontSize: '0.88rem' }}>{catBreed.description}</p>
-                    </>
-                  )}
-                  {catFact && <p style={{ margin: 0, color: 'var(--br-text)', fontSize: '0.88rem', fontStyle: 'italic' }}>💡 {catFact}</p>}
+              <CowsayBubble inputText={task} />
+
+              {/* Cat info card */}
+              {catImageUrl && (
+                <div
+                  role="region"
+                  aria-label="Katteinformasjon"
+                  style={{
+                    background: 'rgba(0,255,255,0.07)', border: '1px solid var(--br-cyan)',
+                    borderRadius: '4px', padding: '1rem 1.25rem', marginBottom: '1rem',
+                    display: 'flex', gap: '1rem', alignItems: 'flex-start',
+                  }}
+                >
+                  <img
+                    src={catImageUrl}
+                    alt={catBreed ? `${catBreed.name} katt` : 'Søt katt'}
+                    style={{ width: '110px', height: '110px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0, border: '1px solid var(--br-cyan)' }}
+                  />
+                  <div>
+                    {catBreed && (
+                      <>
+                        <p style={{ margin: '0 0 0.2rem', fontWeight: 'bold', color: 'var(--br-cyan)', fontSize: '1rem' }}>🐱 {catBreed.name}</p>
+                        <p style={{ margin: '0 0 0.3rem', color: 'var(--br-orange)', fontSize: '0.85rem' }}>🎭 {catBreed.temperament}</p>
+                        <p style={{ margin: '0 0 0.5rem', color: 'var(--br-text)', fontSize: '0.88rem' }}>{catBreed.description}</p>
+                      </>
+                    )}
+                    {catFact && <p style={{ margin: 0, color: 'var(--br-text)', fontSize: '0.88rem', fontStyle: 'italic' }}>💡 {catFact}</p>}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
+              <IrrelevantStats inputText={task} />
+            </form>
+          </div>
+
+          {/* ── RIGHT COLUMN: tone + submit + result ── */}
+          <div className="col-right">
             <fieldset className="bladerunner-fieldset">
               <legend className="bladerunner-legend">Velg tone:</legend>
               <div className="bladerunner-button-group" role="group">
@@ -228,136 +236,113 @@ function Home({
 
             <button
               type="submit"
+              form=""
+              onClick={handleSubmit as unknown as React.MouseEventHandler}
               disabled={loading || !task.trim()}
               className="bladerunner-button bladerunner-submit-btn"
               aria-busy={loading}
+              style={{ width: '100%', marginTop: '0.5rem' }}
             >
               {loading ? "🤖 AI genererer..." : "Gi meg motivasjon! 💪"}
             </button>
-          </form>
 
-          {loading && (
-            <div
-              style={{
-                background: "rgba(0,255,255,0.07)",
-                border: "1px solid var(--br-cyan)",
-                borderRadius: "4px",
-                padding: "2rem",
-                textAlign: "center",
-                animation: "pulse 1.5s ease-in-out infinite",
-              }}
-            >
-              <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
-              <p style={{ color: "var(--br-cyan)", fontSize: "1.2rem", margin: 0 }}>
-                🤖 Henter motivasjon fra AI...
-              </p>
-            </div>
-          )}
-
-          {error && (
-            <div
-              id="motivate-error"
-              className="bladerunner-error"
-              role="alert"
-              aria-live="assertive"
-            >
-              <p style={{ margin: 0 }}>😅 {error}</p>
-            </div>
-          )}
-
-          {result && (
-            <section
-              className="bladerunner-result"
-              aria-label="Motivasjonssvar"
-              aria-live="polite"
-              style={{ position: "relative" }}
-            >
-              <span
+            {loading && (
+              <div
                 style={{
-                  position: "absolute",
-                  top: "1rem",
-                  right: "1rem",
-                  background: "var(--br-cyan)",
-                  color: "#0a0a0f",
-                  fontSize: "0.72rem",
-                  fontWeight: "bold",
-                  padding: "0.25rem 0.65rem",
-                  borderRadius: "2px",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
+                  background: "rgba(0,255,255,0.07)",
+                  border: "1px solid var(--br-cyan)",
+                  borderRadius: "4px",
+                  padding: "2rem",
+                  textAlign: "center",
+                  marginTop: "1rem",
+                  animation: "pulse 1.5s ease-in-out infinite",
                 }}
               >
-                ✨ AI-generert
-              </span>
-
-              <p
-                style={{
-                  fontSize: "0.85rem",
-                  color: "var(--br-orange)",
-                  margin: "0 0 1rem 0",
-                  fontStyle: "italic",
-                }}
-              >
-                Motivasjon for: {task}
-              </p>
-
-              <div style={{ fontSize: "4rem", textAlign: "center", marginBottom: "1rem" }}>
-                {result.emoji}
-              </div>
-
-              <div style={{ marginBottom: "1.5rem" }}>
-                <h2 style={{ color: "var(--br-cyan)", marginBottom: "0.5rem", fontSize: "1.2rem" }}>
-                  💬 Sitat
-                </h2>
-                <p style={{ fontSize: "1.3rem", fontStyle: "italic", margin: 0, color: "var(--br-text)" }}>
-                  "{result.quote}"
+                <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
+                <p style={{ color: "var(--br-cyan)", fontSize: "1.2rem", margin: 0 }}>
+                  🤖 Henter motivasjon fra AI...
                 </p>
               </div>
+            )}
 
-              <div style={{ marginBottom: "1.5rem" }}>
-                <h2 style={{ color: "var(--br-cyan)", marginBottom: "0.5rem", fontSize: "1.2rem" }}>
-                  📚 Fakta
-                </h2>
-                <p style={{ margin: 0, color: "var(--br-text)" }}>{result.fact}</p>
+            {error && (
+              <div
+                id="motivate-error"
+                className="bladerunner-error"
+                role="alert"
+                aria-live="assertive"
+                style={{ marginTop: "1rem" }}
+              >
+                <p style={{ margin: 0 }}>😅 {error}</p>
               </div>
+            )}
 
-              <div style={{ marginBottom: "1.5rem" }}>
-                <h2 style={{ color: "var(--br-cyan)", marginBottom: "0.5rem", fontSize: "1.2rem" }}>
-                  💡 Tips
-                </h2>
-                <p style={{ margin: 0, color: "var(--br-text)" }}>{result.tip}</p>
-              </div>
+            {result && (
+              <section
+                className="bladerunner-result"
+                aria-label="Motivasjonssvar"
+                aria-live="polite"
+                style={{ position: "relative", marginTop: "1rem" }}
+              >
+                <span
+                  style={{
+                    position: "absolute", top: "1rem", right: "1rem",
+                    background: "var(--br-cyan)", color: "#0a0a0f",
+                    fontSize: "0.72rem", fontWeight: "bold",
+                    padding: "0.25rem 0.65rem", borderRadius: "2px",
+                    letterSpacing: "0.08em", textTransform: "uppercase",
+                  }}
+                >
+                  ✨ AI-generert
+                </span>
 
-              {/* Cat section in result */}
-              {catImageUrl && (catBreed || catFact) && (
-                <div style={{ marginTop: '1.5rem', background: 'rgba(0,255,255,0.07)', border: '1px solid var(--br-cyan)', borderRadius: '4px', padding: '1rem' }}>
-                  <h2 style={{ color: 'var(--br-cyan)', marginBottom: '0.5rem', fontSize: '1.2rem' }}>🐱 Katte-fakta</h2>
-                  {catBreed && <p style={{ margin: '0 0 0.3rem', fontWeight: 'bold', color: 'var(--br-orange)' }}>{catBreed.name} — {catBreed.temperament}</p>}
-                  {catFact && <p style={{ margin: 0, color: 'var(--br-text)', fontStyle: 'italic' }}>{catFact}</p>}
+                <p style={{ fontSize: "0.85rem", color: "var(--br-orange)", margin: "0 0 1rem 0", fontStyle: "italic" }}>
+                  Motivasjon for: {task}
+                </p>
+
+                <div style={{ fontSize: "4rem", textAlign: "center", marginBottom: "1rem" }}>
+                  {result.emoji}
                 </div>
-              )}
 
-              {/* GIF + cat image row */}
-              {(result.gifUrl || catImageUrl) && (
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem', flexWrap: 'wrap' }}>
-                  {result.gifUrl && (
-                    <img
-                      src={result.gifUrl}
-                      alt="Motiverende GIF"
-                      style={{ flex: '1 1 45%', maxWidth: '48%', minWidth: '200px', border: '2px solid var(--br-cyan)', objectFit: 'cover' }}
-                    />
-                  )}
-                  {catImageUrl && (
-                    <img
-                      src={catImageUrl}
-                      alt={catBreed?.name ?? 'Søt katt'}
-                      style={{ flex: '1 1 45%', maxWidth: '48%', minWidth: '200px', border: '2px solid var(--br-cyan)', objectFit: 'cover' }}
-                    />
-                  )}
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <h2 style={{ color: "var(--br-cyan)", marginBottom: "0.5rem", fontSize: "1.2rem" }}>💬 Sitat</h2>
+                  <p style={{ fontSize: "1.3rem", fontStyle: "italic", margin: 0, color: "var(--br-text)" }}>"{result.quote}"</p>
                 </div>
-              )}
-            </section>
-          )}
+
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <h2 style={{ color: "var(--br-cyan)", marginBottom: "0.5rem", fontSize: "1.2rem" }}>📚 Fakta</h2>
+                  <p style={{ margin: 0, color: "var(--br-text)" }}>{result.fact}</p>
+                </div>
+
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <h2 style={{ color: "var(--br-cyan)", marginBottom: "0.5rem", fontSize: "1.2rem" }}>💡 Tips</h2>
+                  <p style={{ margin: 0, color: "var(--br-text)" }}>{result.tip}</p>
+                </div>
+
+                {catImageUrl && (catBreed || catFact) && (
+                  <div style={{ marginTop: '1.5rem', background: 'rgba(0,255,255,0.07)', border: '1px solid var(--br-cyan)', borderRadius: '4px', padding: '1rem' }}>
+                    <h2 style={{ color: 'var(--br-cyan)', marginBottom: '0.5rem', fontSize: '1.2rem' }}>🐱 Katte-fakta</h2>
+                    {catBreed && <p style={{ margin: '0 0 0.3rem', fontWeight: 'bold', color: 'var(--br-orange)' }}>{catBreed.name} — {catBreed.temperament}</p>}
+                    {catFact && <p style={{ margin: 0, color: 'var(--br-text)', fontStyle: 'italic' }}>{catFact}</p>}
+                  </div>
+                )}
+
+                {(result.gifUrl || catImageUrl) && (
+                  <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem', flexWrap: 'wrap' }}>
+                    {result.gifUrl && (
+                      <img src={result.gifUrl} alt="Motiverende GIF"
+                        style={{ flex: '1 1 45%', maxWidth: '48%', minWidth: '140px', border: '2px solid var(--br-cyan)', objectFit: 'cover' }} />
+                    )}
+                    {catImageUrl && (
+                      <img src={catImageUrl} alt={catBreed?.name ?? 'Søt katt'}
+                        style={{ flex: '1 1 45%', maxWidth: '48%', minWidth: '140px', border: '2px solid var(--br-cyan)', objectFit: 'cover' }} />
+                    )}
+                  </div>
+                )}
+              </section>
+            )}
+          </div>
+
         </main>
       </div>
     </div>
