@@ -2,42 +2,44 @@
 
 ## Oversikt
 
-Vi tester backend API og frontend-komponenter separat. Alle eksterne APIer (LLM, GIF, nyheter) er alltid mocket i tester — ingen ekte nettverkskall i testsuiten.
+Vi tester backend API og frontend-komponenter separat. Alle eksterne APIer er mocket i tester, så testsuiten kjører uten ekte nettverkskall.
 
 ## Kjøre tester
 
 ### Backend
 ```bash
-cd humotivatoren/backend
-npm install
-npm test
+npm run test --workspace=backend
 ```
 
 ### Frontend
 ```bash
-cd humotivatoren/frontend
-npm install
-npm test
+npm run test --workspace=frontend
+```
+
+### Alt på en gang
+```bash
+npm run test
 ```
 
 ## Hva vi tester
 
 ### Backend (Vitest + supertest)
-- `GET /api/health` — returnerer 200 og status ok
-- `POST /api/motivate` — happy path med alle personality-typer
-- Validering: manglende task, tomt task, for lang task
-- Norske spesialtegn (æøå) håndteres riktig
+- `GET /api/health` — returnerer status og versjonsinfo
+- `POST /api/motivate` — happy path og feilhåndtering
+- `GET /api/development-history` og `GET /api/development-history/:hash`
+- `POST /api/cowsay`, `POST /api/mouth-word`, og `GET /api/weather/chaos`
+- Validering av tomme, for lange og ugyldige payloads
 
 ### Frontend (Vitest + React Testing Library)
-- App rendrer heading, input, knapp og personality-velger
+- App rendrer hovedsiden og navigasjonen til de tre undersidene
 - Resultat vises etter vellykket innsending
 - Tom innsending krasjer ikke appen
-- Emoji vises fra API-respons
+- Development history og detail-view rendres med riktig innhold
 
 ## Mockestrategi
 
-- LLM-service mockes i alle backend-tester (`vi.mock('../services/llmService.js', ...)`)
-- `services/api.ts` mockes i alle frontend-tester
+- LLM- og API-klienter mockes i backend-tester
+- `services/api.ts` og fetch-kall mockes i frontend-tester
 - Ingen `.env`-variabler nødvendig for å kjøre tester
 
 ## Edge cases dekket
@@ -46,4 +48,4 @@ npm test
 - Tomt input
 - Veldig langt input
 - Alle 4 personality-typer: silly, serious, sports, nerdy
-- API-feil (håndteres i frontend error-state)
+- API-feil og 400/404-svar (håndteres i frontend error-state)
