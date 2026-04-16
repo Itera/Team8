@@ -11,3 +11,14 @@ export interface MotivationResponse {
   emoji: string;
   personality: string;
 }
+
+export interface AskRequest {
+  question: string;
+}
+
+export interface AskResponse {
+  answer: string;
+  encouragement: string;
+  irrelevantFact: string;
+  emoji: string;
+}

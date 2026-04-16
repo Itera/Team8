@@ -4,6 +4,7 @@ import rateLimit from 'express-rate-limit';
 import { motivateRouter } from './routes/motivate.js';
 import { healthRouter } from './routes/health.js';
 import { cowsayRouter } from './routes/cowsay.js';
+import { askRouter } from './routes/ask.js';
 
 const app: Express = express();
 
@@ -24,6 +25,7 @@ app.use(express.json({ limit: '4kb' }));
 app.use('/api/motivate', motivateRouter);
 app.use('/api/health', healthRouter);
 app.use('/api/cowsay', cowsayLimiter, cowsayRouter);
+app.use('/api/ask', cowsayLimiter, askRouter);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {
