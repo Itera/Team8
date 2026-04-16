@@ -1,12 +1,23 @@
-import { useState, useEffect, useRef } from 'react';
+import './App.css';
+import { useState, useId } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import type { MotivationRequest, MotivationResponse } from './types';
-import { CowsayBubble } from './components/CowsayBubble';
 import { IrrelevantStats } from './components/IrrelevantStats';
+import { CowsayBubble } from './components/CowsayBubble';
 
-// Cat words in many languages
-const CAT_REGEX = /\b(cat|cats|kitten|kittens|kitty|kitties|katt|katten|katter|kattene|kattunge|kattungen|kattunger|kattungene|gato|gatos|gatito|gatitos|chat|chats|chaton|chatons|katze|katzen|kätzchen|gatto|gatti|gattino|kat|katte|killing|killingen|poes|poesje|kot|koty|kotek|kissa|kissoja|猫|貓|ねこ|قطة)\b/i;
+/* ── Types ── */
+type PersonalityOption = NonNullable<MotivationRequest['personality']>;
+type Tab = 'motivate' | 'quotes';
 
-const QUOTES: Record<string, { content: string; author: string }[]> = {
+/* ── Constants ── */
+const PERSONALITIES: { value: PersonalityOption; label: string; emoji: string }[] = [
+  { value: 'silly',   label: 'Useriøs', emoji: '😜' },
+  { value: 'serious', label: 'Seriøs',  emoji: '🧐' },
+  { value: 'sports',  label: 'Sport',   emoji: '⚽' },
+  { value: 'nerdy',   label: 'Nerd',    emoji: '🤓' },
+];
+
+const QUOTES: Record<PersonalityOption, { content: string; author: string }[]> = {
   silly: [
     { content: "If at first you don't succeed, then skydiving definitely isn't for you.", author: "Steven Wright" },
     { content: "The road to success is dotted with many tempting parking spaces.", author: "Will Rogers" },
@@ -37,329 +48,380 @@ const QUOTES: Record<string, { content: string; author: string }[]> = {
   ],
 };
 
-type PersonalityOption = NonNullable<MotivationRequest['personality']>;
+/* ── API helpers (used by TanStack mutations/queries) ── */
+async function fetchMotivation(req: MotivationRequest): Promise<MotivationResponse> {
+  const res = await fetch('/api/motivate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    // Input is already trimmed + length-validated client-side; server validates again
+    body: JSON.stringify(req),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(text || `Server svarte med ${res.status}`);
+  }
+  return res.json() as Promise<MotivationResponse>;
+}
 
-const PERSONALITIES: { value: PersonalityOption; label: string }[] = [
-  { value: 'silly', label: '😜 Useriøs' },
-  { value: 'serious', label: '🧐 Seriøs' },
-  { value: 'sports', label: '⚽ Sport' },
-  { value: 'nerdy', label: '🤓 Nerd' },
-];
+const CAT_REGEX = /\b(cat|cats|kitten|kittens|kitty|katt|katten|katter|kattunge|gato|chat|katze|gatto|kot|kissa|猫|貓|ねこ|قطة)\b/i;
 
-function App() {
-  const [task, setTask] = useState('');
-  const [personality, setPersonality] = useState<PersonalityOption>('silly');
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<MotivationResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [catImageUrl, setCatImageUrl] = useState<string | null>(null);
-  const [catFact, setCatFact] = useState<string | null>(null);
-  const [catBreed, setCatBreed] = useState<{ name: string; temperament: string; description: string } | null>(null);
-  const [quotableQuote, setQuotableQuote] = useState<{ content: string; author: string } | null>(null);
-  const lastFetchedFor = useRef<string | null>(null);
-
-  useEffect(() => {
-    const hasCat = CAT_REGEX.test(task);
-    if (hasCat && lastFetchedFor.current !== task) {
-      lastFetchedFor.current = task;
-
-      // Fetch cat image + breed info
-      fetch('https://api.thecatapi.com/v1/images/search?has_breeds=1')
-        .then((r) => r.json())
-        .then((data: { url: string; breeds?: { name: string; temperament: string; description: string }[] }[]) => {
-          if (data?.[0]?.url) setCatImageUrl(data[0].url);
-          const breed = data?.[0]?.breeds?.[0];
-          if (breed) setCatBreed({ name: breed.name, temperament: breed.temperament, description: breed.description });
-        })
-        .catch(() => {});
-
-      // Fetch random cat fact
-      fetch('https://catfact.ninja/fact')
-        .then((r) => r.json())
-        .then((data: { fact: string }) => {
-          if (data?.fact) setCatFact(data.fact);
-        })
-        .catch(() => {});
-
-    } else if (!hasCat) {
-      setCatImageUrl(null);
-      setCatFact(null);
-      setCatBreed(null);
-      lastFetchedFor.current = null;
-    }
-  }, [task]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!task.trim()) return;
-
-    setLoading(true);
-    setError(null);
-    setResult(null);
-
-    // Pick a random local quote for the selected personality
-    const pool = QUOTES[personality];
-    const randomQuote = pool[Math.floor(Math.random() * pool.length)];
-    setQuotableQuote(randomQuote);
-
-    try {
-      const request: MotivationRequest = { task: task.trim(), personality };
-      const response = await fetch('/api/motivate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(request),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}`);
-      }
-
-      const data: MotivationResponse = await response.json();
-      setResult(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Noe gikk galt!');
-    } finally {
-      setLoading(false);
-    }
+async function fetchCatData() {
+  const [imgRes, factRes] = await Promise.all([
+    fetch('https://api.thecatapi.com/v1/images/search?has_breeds=1'),
+    fetch('https://catfact.ninja/fact'),
+  ]);
+  const [imgData, factData] = await Promise.all([imgRes.json(), factRes.json()]) as [
+    { url: string; breeds?: { name: string; temperament: string; description: string }[] }[],
+    { fact: string },
+  ];
+  return {
+    imageUrl: imgData?.[0]?.url ?? null,
+    breed: imgData?.[0]?.breeds?.[0] ?? null,
+    fact: factData?.fact ?? null,
   };
+}
+
+/* ── App ── */
+export default function App() {
+  const [activeTab, setActiveTab] = useState<Tab>('motivate');
+  const tabPanelId = useId();
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '2rem',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      {/* Real cat photo overlay when cat word is detected */}
-      {catImageUrl && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0,
-          width: '100%', height: '100%',
-          backgroundImage: `url(${catImageUrl})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: 0.35,
-          pointerEvents: 'none',
-          zIndex: 0,
-          transition: 'opacity 0.6s ease',
-        }} />
-      )}
+    <div className="app-shell">
+      <div className="orb orb-1" aria-hidden="true" />
+      <div className="orb orb-2" aria-hidden="true" />
+      <div className="orb orb-3" aria-hidden="true" />
 
-      <div style={{ 
-        maxWidth: '800px', 
-        margin: '0 auto', 
-        textAlign: 'center',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        <header style={{ marginBottom: '2rem' }}>
-          <h1 style={{ 
-            fontSize: '3.5rem', 
-            color: 'white', 
-            margin: 0,
-            textShadow: '2px 2px 4px rgba(0,0,0,0.2)'
-          }}>
-            HuMotivatoren 🚀
+      <div className="app-container">
+        <header className="app-header">
+          <h1 className="app-title">
+            HuMotivatoren <span className="rocket" aria-hidden="true">🚀</span>
           </h1>
-          <p style={{ 
-            fontSize: '1.5rem', 
-            color: 'rgba(255,255,255,0.9)', 
-            marginTop: '0.5rem' 
-          }}>
-            Få (u)relevant inspirasjon til det du skal gjøre
-          </p>
+          <p className="app-subtitle">Få (u)relevant inspirasjon til det du skal gjøre</p>
         </header>
 
-        <main>
-          <form onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
-            <input
-              type="text"
-              value={task}
-              onChange={(e) => setTask(e.target.value)}
-              placeholder="Hva skal du gjøre? (f.eks. 'lese nyheter')"
-              disabled={loading}
-              style={{
-                width: '100%',
-                padding: '1rem 1.5rem',
-                fontSize: '1.2rem',
-                border: 'none',
-                borderRadius: '12px',
-                marginBottom: '1rem',
-                boxSizing: 'border-box',
-                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-              }}
-            />
-
-            <CowsayBubble inputText={task} />
-            <IrrelevantStats inputText={task} />
-
-            {/* Cat info card — appears as soon as a cat word is typed */}
-            {catImageUrl && (
-              <div style={{
-                background: 'rgba(255,255,255,0.92)',
-                borderRadius: '12px',
-                padding: '1.25rem 1.5rem',
-                marginBottom: '1rem',
-                textAlign: 'left',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                display: 'flex',
-                gap: '1.25rem',
-                alignItems: 'flex-start',
-              }}>
-                <img
-                  src={catImageUrl}
-                  alt="Søt katt"
-                  style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '10px', flexShrink: 0 }}
-                />
-                <div>
-                  {catBreed && (
-                    <>
-                      <p style={{ margin: '0 0 0.25rem', fontWeight: 'bold', color: '#764ba2', fontSize: '1rem' }}>🐱 {catBreed.name}</p>
-                      <p style={{ margin: '0 0 0.4rem', color: '#555', fontSize: '0.85rem' }}>🎭 {catBreed.temperament}</p>
-                      <p style={{ margin: '0 0 0.6rem', color: '#374151', fontSize: '0.9rem' }}>{catBreed.description}</p>
-                    </>
-                  )}
-                  {catFact && <p style={{ margin: 0, color: '#374151', fontSize: '0.9rem', fontStyle: 'italic' }}>💡 {catFact}</p>}
-                </div>
-              </div>
-            )}
-            
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              gap: '0.5rem', 
-              marginBottom: '1rem',
-              flexWrap: 'wrap'
-            }}>
-              {PERSONALITIES.map(({ value, label }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setPersonality(value)}
-                  style={{
-                    padding: '0.75rem 1.25rem',
-                    fontSize: '1rem',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    background: personality === value 
-                      ? 'white' 
-                      : 'rgba(255,255,255,0.3)',
-                    color: personality === value ? '#764ba2' : 'white',
-                    fontWeight: personality === value ? 'bold' : 'normal',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            
-            <button 
-              type="submit" 
-              disabled={loading || !task.trim()}
-              style={{
-                padding: '1rem 2.5rem',
-                fontSize: '1.3rem',
-                border: 'none',
-                borderRadius: '12px',
-                cursor: loading || !task.trim() ? 'not-allowed' : 'pointer',
-                background: loading || !task.trim() 
-                  ? 'rgba(255,255,255,0.5)' 
-                  : 'white',
-                color: '#764ba2',
-                fontWeight: 'bold',
-                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                transition: 'transform 0.2s ease'
-              }}
+        {/* ── Tab bar ── */}
+        <nav className="tab-bar" role="tablist" aria-label="Seksjoner">
+          {([
+            { id: 'motivate' as Tab, label: '💪 Motivér meg', desc: 'Motivasjon og statistikk' },
+            { id: 'quotes'   as Tab, label: '💬 Sitater',     desc: 'Inspirerende sitater' },
+          ] as const).map((tab) => (
+            <button
+              key={tab.id}
+              role="tab"
+              id={`tab-${tab.id}`}
+              aria-controls={`${tabPanelId}-${tab.id}`}
+              aria-selected={activeTab === tab.id}
+              className={`tab-btn${activeTab === tab.id ? ' active' : ''}`}
+              onClick={() => setActiveTab(tab.id)}
             >
-              {loading ? '⏳ Tenker...' : 'Gi meg motivasjon! 💪'}
+              <span>{tab.label}</span>
+              <span className="tab-desc">{tab.desc}</span>
             </button>
-          </form>
+          ))}
+        </nav>
 
-          {error && (
-            <div style={{
-              background: '#fee2e2',
-              color: '#dc2626',
-              padding: '1rem',
-              borderRadius: '12px',
-              marginBottom: '1rem'
-            }}>
-              <p style={{ margin: 0 }}>😅 {error}</p>
-            </div>
-          )}
-
-          {result && (
-            <div style={{
-              background: 'white',
-              borderRadius: '16px',
-              padding: '2rem',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-              textAlign: 'left'
-            }}>
-              <div style={{ fontSize: '4rem', textAlign: 'center', marginBottom: '1rem' }}>
-                {result.emoji}
-              </div>
-
-              <div style={{ marginBottom: '1.5rem' }}>
-                <h2 style={{ color: '#764ba2', marginBottom: '0.5rem', fontSize: '1.2rem' }}>💬 Sitat</h2>
-                {quotableQuote ? (
-                  <>
-                    <p style={{ fontSize: '1.3rem', fontStyle: 'italic', margin: '0 0 0.4rem', color: '#374151' }}>
-                      "{quotableQuote.content}"
-                    </p>
-                    <p style={{ margin: 0, color: '#764ba2', fontWeight: 'bold', fontSize: '0.9rem' }}>— {quotableQuote.author}</p>
-                  </>
-                ) : (
-                  <p style={{ fontSize: '1.3rem', fontStyle: 'italic', margin: 0, color: '#374151' }}>"{result.quote}"</p>
-                )}
-              </div>
-
-              <div style={{ marginBottom: '1.5rem' }}>
-                <h2 style={{ color: '#764ba2', marginBottom: '0.5rem', fontSize: '1.2rem' }}>📚 Fakta</h2>
-                <p style={{ margin: 0, color: '#374151' }}>{result.fact}</p>
-              </div>
-
-              <div style={{ marginBottom: '1.5rem' }}>
-                <h2 style={{ color: '#764ba2', marginBottom: '0.5rem', fontSize: '1.2rem' }}>💡 Tips</h2>
-                <p style={{ margin: 0, color: '#374151' }}>{result.tip}</p>
-              </div>
-
-              {catImageUrl && (catBreed || catFact) && (
-                <div style={{ marginBottom: '1.5rem', background: '#fef9ff', borderRadius: '10px', padding: '1rem' }}>
-                  <h2 style={{ color: '#764ba2', marginBottom: '0.5rem', fontSize: '1.2rem' }}>🐱 Katte-fakta</h2>
-                  {catBreed && <p style={{ margin: '0 0 0.3rem', fontWeight: 'bold', color: '#555' }}>{catBreed.name} — {catBreed.temperament}</p>}
-                  {catFact && <p style={{ margin: 0, color: '#374151', fontStyle: 'italic' }}>{catFact}</p>}
-                </div>
-              )}
-
-              {(result.gifUrl || catImageUrl) && (
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem', flexWrap: 'wrap' }}>
-                  {result.gifUrl && (
-                    <img
-                      src={result.gifUrl}
-                      alt="Motiverende GIF"
-                      style={{ flex: '1 1 45%', maxWidth: '48%', minWidth: '200px', borderRadius: '12px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)', objectFit: 'cover' }}
-                    />
-                  )}
-                  {catImageUrl && (
-                    <img
-                      src={catImageUrl}
-                      alt="Søt katt fra The Cat API"
-                      style={{ flex: '1 1 45%', maxWidth: '48%', minWidth: '200px', borderRadius: '12px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)', objectFit: 'cover' }}
-                    />
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+        {/* ── Panels ── */}
+        <main>
+          <div
+            role="tabpanel"
+            id={`${tabPanelId}-motivate`}
+            aria-labelledby="tab-motivate"
+            hidden={activeTab !== 'motivate'}
+          >
+            {activeTab === 'motivate' && <MotivatePanel />}
+          </div>
+          <div
+            role="tabpanel"
+            id={`${tabPanelId}-quotes`}
+            aria-labelledby="tab-quotes"
+            hidden={activeTab !== 'quotes'}
+          >
+            {activeTab === 'quotes' && <QuotesPanel />}
+          </div>
         </main>
       </div>
     </div>
   );
 }
 
-export default App;
+/* ══════════════════════════════════════════
+   TAB 1 — Motivate + Statistics
+══════════════════════════════════════════ */
+function MotivatePanel() {
+  const [task, setTask] = useState('');
+  const [personality, setPersonality] = useState<PersonalityOption>('silly');
+  const inputId = useId();
+
+  // Cat data query — only enabled when input contains a cat word
+  const hasCat = CAT_REGEX.test(task);
+  const catQuery = useQuery({
+    queryKey: ['cat', task],
+    queryFn: fetchCatData,
+    enabled: hasCat,
+    staleTime: 60_000,
+  });
+
+  // Motivation mutation (POST, not a GET query)
+  const motivationMutation = useMutation({
+    mutationFn: fetchMotivation,
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = task.trim();
+    if (!trimmed || trimmed.length > 280) return;
+    motivationMutation.mutate({ task: trimmed, personality });
+  };
+
+  const result = motivationMutation.data;
+  const isLoading = motivationMutation.isPending;
+  const errorMsg = motivationMutation.error?.message;
+
+  return (
+    <>
+      {/* Cat background overlay */}
+      {catQuery.data?.imageUrl && (
+        <div
+          className="cat-bg visible"
+          style={{ backgroundImage: `url(${catQuery.data.imageUrl})` }}
+          aria-hidden="true"
+        />
+      )}
+
+      <div className="glass-card">
+        <form onSubmit={handleSubmit} noValidate>
+          <label htmlFor={inputId} className="field-label">Hva skal du gjøre?</label>
+          <input
+            id={inputId}
+            type="text"
+            className="task-input"
+            value={task}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val.length <= 280) setTask(val);
+            }}
+            placeholder="F.eks. 'lese nyheter' eller 'trene'"
+            disabled={isLoading}
+            maxLength={280}
+            autoComplete="off"
+            aria-describedby={errorMsg ? 'motivate-error' : undefined}
+          />
+          <div className="char-count" aria-live="polite" aria-atomic="true">
+            {task.length > 240 && <span>{280 - task.length} tegn igjen</span>}
+          </div>
+
+          {/* Cat info card */}
+          {catQuery.data?.imageUrl && (
+            <div className="cat-card mt-2" role="region" aria-label="Katteinformasjon">
+              <img src={catQuery.data.imageUrl} alt={catQuery.data.breed ? `${catQuery.data.breed.name} katt` : 'Søt katt'} />
+              <div>
+                {catQuery.data.breed && (
+                  <>
+                    <p className="cat-card-breed">🐱 {catQuery.data.breed.name}</p>
+                    <p className="cat-card-temperament">🎭 {catQuery.data.breed.temperament}</p>
+                    <p className="cat-card-desc">{catQuery.data.breed.description}</p>
+                  </>
+                )}
+                {catQuery.data.fact && <p className="cat-card-fact">💡 {catQuery.data.fact}</p>}
+              </div>
+            </div>
+          )}
+
+          {/* Live cowsay preview */}
+          <div className="mt-2">
+            <CowsayBubble inputText={task} />
+          </div>
+
+          {/* Personality selector */}
+          <fieldset className="personality-fieldset mt-2">
+            <legend className="field-label">Velg tone:</legend>
+            <div className="personality-group" role="group">
+              {PERSONALITIES.map(({ value, label, emoji }) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`personality-btn${personality === value ? ' active' : ''}`}
+                  aria-pressed={personality === value}
+                  onClick={() => setPersonality(value)}
+                >
+                  <span aria-hidden="true">{emoji}</span> {label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <button
+            type="submit"
+            className="submit-btn"
+            disabled={isLoading || !task.trim()}
+            aria-busy={isLoading}
+          >
+            {isLoading ? '⏳ Tenker...' : 'Gi meg motivasjon! 💪'}
+          </button>
+        </form>
+
+        {errorMsg && (
+          <div id="motivate-error" className="error-box" role="alert" aria-live="assertive">
+            ❌ {errorMsg}
+          </div>
+        )}
+      </div>
+
+      {/* Skeleton while loading */}
+      {isLoading && (
+        <div className="result-card" aria-busy="true" aria-label="Laster motivasjon...">
+          <div className="skeleton-line wide" />
+          <div className="skeleton-line medium" />
+          <div className="skeleton-line narrow" />
+          <div className="skeleton-line wide mt-2" />
+          <div className="skeleton-line medium" />
+        </div>
+      )}
+
+      {/* Result */}
+      {result && !isLoading && (
+        <article className="result-card" aria-label="Motivasjonssvar">
+          <span className="result-emoji" aria-hidden="true">{result.emoji}</span>
+
+          <p className="result-section-title">💬 Sitat</p>
+          <p className="result-quote">"{result.quote}"</p>
+
+          <hr className="result-divider" />
+          <p className="result-section-title">📚 Fakta</p>
+          <p className="result-text">{result.fact}</p>
+
+          <hr className="result-divider" />
+          <p className="result-section-title">💡 Tips</p>
+          <p className="result-text">{result.tip}</p>
+
+          {catQuery.data?.breed && catQuery.data?.fact && (
+            <>
+              <hr className="result-divider" />
+              <p className="result-section-title">🐱 Katte-fakta</p>
+              <p className="result-text" style={{ fontWeight: 600, color: '#764ba2', marginBottom: '0.3rem' }}>
+                {catQuery.data.breed.name} — {catQuery.data.breed.temperament}
+              </p>
+              <p className="result-text" style={{ fontStyle: 'italic' }}>{catQuery.data.fact}</p>
+            </>
+          )}
+
+          {(result.gifUrl || catQuery.data?.imageUrl) && (
+            <div className="result-image-row">
+              {result.gifUrl && <img src={result.gifUrl} alt="Motiverende illustrasjon" />}
+              {catQuery.data?.imageUrl && (
+                <img src={catQuery.data.imageUrl} alt={catQuery.data.breed?.name ?? 'Søt katt'} />
+              )}
+            </div>
+          )}
+        </article>
+      )}
+
+      {/* Statistics — shown as soon as user types */}
+      {task.trim() && (
+        <section className="mt-3" aria-label="Statistikk">
+          <IrrelevantStats inputText={task} />
+        </section>
+      )}
+    </>
+  );
+}
+
+/* ══════════════════════════════════════════
+   TAB 2 — Quotes
+══════════════════════════════════════════ */
+function QuotesPanel() {
+  const [activePersonality, setActivePersonality] = useState<PersonalityOption>('silly');
+  const [currentIdx, setCurrentIdx] = useState(0);
+
+  const quotes = QUOTES[activePersonality];
+  const quote = quotes[currentIdx];
+
+  const handlePersonalityChange = (p: PersonalityOption) => {
+    setActivePersonality(p);
+    setCurrentIdx(0);
+  };
+
+  const next = () => setCurrentIdx((i) => (i + 1) % quotes.length);
+  const prev = () => setCurrentIdx((i) => (i - 1 + quotes.length) % quotes.length);
+
+  return (
+    <div className="glass-card">
+      <h2 className="panel-title">💬 Inspirerende sitater</h2>
+      <p className="panel-subtitle">Velg kategori og bla gjennom sitater</p>
+
+      {/* Personality filter */}
+      <fieldset className="personality-fieldset mt-2">
+        <legend className="field-label">Kategori:</legend>
+        <div className="personality-group">
+          {PERSONALITIES.map(({ value, label, emoji }) => (
+            <button
+              key={value}
+              type="button"
+              className={`personality-btn${activePersonality === value ? ' active' : ''}`}
+              aria-pressed={activePersonality === value}
+              onClick={() => handlePersonalityChange(value)}
+            >
+              <span aria-hidden="true">{emoji}</span> {label}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
+      {/* Quote display */}
+      <div className="quote-display mt-3" aria-live="polite" aria-atomic="true">
+        <blockquote className="quote-blockquote">
+          <p className="quote-text">"{quote.content}"</p>
+          <footer className="quote-footer">
+            <cite>— {quote.author}</cite>
+          </footer>
+        </blockquote>
+
+        <div className="quote-nav" role="group" aria-label="Naviger sitater">
+          <button
+            type="button"
+            className="quote-nav-btn"
+            onClick={prev}
+            aria-label="Forrige sitat"
+          >
+            ← Forrige
+          </button>
+          <span className="quote-counter" aria-live="polite">
+            {currentIdx + 1} / {quotes.length}
+          </span>
+          <button
+            type="button"
+            className="quote-nav-btn"
+            onClick={next}
+            aria-label="Neste sitat"
+          >
+            Neste →
+          </button>
+        </div>
+      </div>
+
+      {/* All quotes list */}
+      <section className="quotes-list mt-3" aria-label="Alle sitater i kategorien">
+        <h3 className="field-label">Alle i kategorien:</h3>
+        <ol className="quotes-ol">
+          {quotes.map((q, i) => (
+            <li
+              key={i}
+              className={`quotes-li${i === currentIdx ? ' current' : ''}`}
+              aria-current={i === currentIdx ? 'true' : undefined}
+            >
+              <button
+                type="button"
+                className="quote-list-btn"
+                onClick={() => setCurrentIdx(i)}
+              >
+                <span className="quote-list-text">"{q.content}"</span>
+                <span className="quote-list-author">— {q.author}</span>
+              </button>
+            </li>
+          ))}
+        </ol>
+      </section>
+    </div>
+  );
+}
