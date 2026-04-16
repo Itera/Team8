@@ -2,6 +2,7 @@ import express, { type Express, type Request, type Response, type NextFunction }
 import cors from 'cors';
 import { motivateRouter } from './routes/motivate.js';
 import { healthRouter } from './routes/health.js';
+import { cowsayRouter } from './routes/cowsay.js';
 
 const app: Express = express();
 
@@ -12,6 +13,7 @@ app.use(express.json());
 // Routes
 app.use('/api/motivate', motivateRouter);
 app.use('/api/health', healthRouter);
+app.use('/api/cowsay', cowsayRouter);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {
