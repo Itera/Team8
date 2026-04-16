@@ -1,0 +1,117 @@
+name: Generate change entry on merge to main
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  generate-change-entry:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Extract commit metadata
+        id: meta
+        run: |
+          HASH=$(git rev-parse --short HEAD)
+          TITLE=$(git log -1 --pretty=format:%s)
+          DATE=$(git log -1 --pretty=format:%cI)
+          AUTHOR=$(git log -1 --pretty=format:%an)
+          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+          echo "title=$TITLE" >> "$GITHUB_OUTPUT"
+          echo "date=$DATE" >> "$GITHUB_OUTPUT"
+          echo "author=$AUTHOR" >> "$GITHUB_OUTPUT"
+
+      - name: Create markdown change file
+        run: |
+          HASH="${{ steps.meta.outputs.hash }}"
+          TITLE="${{ steps.meta.outputs.title }}"
+          DATE="${{ steps.meta.outputs.date }}"
+          AUTHOR="${{ steps.meta.outputs.author }}"
+          SHORT_DATE=$(echo "$DATE" | cut -c1-10)
+
+          DEST="frontend/public/changes/${HASH}.md"
+          mkdir -p frontend/public/changes
+
+          cat > "$DEST" <<EOF
+          # ${TITLE}
+
+          **Hash:** ${HASH}
+          **Date:** ${SHORT_DATE}
+          **Author:** ${AUTHOR}
+
+          ## Summary
+
+          This entry was automatically generated when commit \`${HASH}\` was merged
+          to the \`main\` branch.
+
+          ## Commit title
+
+          ${TITLE}
+
+          ## Details
+
+          Review the full diff on GitHub to see all files changed in this merge.
+          EOF
+
+      - name: Update changes index.json
+        run: |
+          HASH="${{ steps.meta.outputs.hash }}"
+          TITLE="${{ steps.meta.outputs.title }}"
+          DATE="${{ steps.meta.outputs.date }}"
+          AUTHOR="${{ steps.meta.outputs.author }}"
+
+          INDEX="frontend/public/changes/index.json"
+
+          # Read existing index or start with empty array
+          if [ -f "$INDEX" ]; then
+            EXISTING=$(cat "$INDEX")
+          else
+            EXISTING="[]"
+          fi
+
+          # Check if this hash already exists in the index
+          if echo "$EXISTING" | grep -q "\"$HASH\""; then
+            echo "Hash $HASH already in index, skipping."
+            exit 0
+          fi
+
+          # Build new entry as JSON and prepend it to the array
+          NEW_ENTRY=$(node -e "
+            const existing = $EXISTING;
+            const entry = {
+              hash: '$HASH',
+              title: $(node -e "process.stdout.write(JSON.stringify('$TITLE'))"),
+              date: '$DATE',
+              author: $(node -e "process.stdout.write(JSON.stringify('$AUTHOR'))")
+            };
+            existing.unshift(entry);
+            process.stdout.write(JSON.stringify(existing, null, 2));
+          ")
+
+          echo "$NEW_ENTRY" > "$INDEX"
+
+      - name: Commit and push change entry
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/changes/
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+          else
+            git commit -m "chore: add change entry for ${{ steps.meta.outputs.hash }}"
+            git push
+          fi

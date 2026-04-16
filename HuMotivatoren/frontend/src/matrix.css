@@ -1,0 +1,255 @@
+/* Matrix theme - late 1980s terminal aesthetic */
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+:root {
+  --matrix-bg: #000000;
+  --matrix-green: #00ff41;
+  --matrix-green-dim: #00b32c;
+  --matrix-green-glow: rgba(0, 255, 65, 0.15);
+  --matrix-border: #003b00;
+  --matrix-font: 'Share Tech Mono', 'Courier New', Courier, monospace;
+}
+
+.matrix-page {
+  min-height: 100vh;
+  background-color: var(--matrix-bg);
+  color: var(--matrix-green);
+  font-family: var(--matrix-font);
+  padding: 2rem;
+  box-sizing: border-box;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* scanline overlay */
+.matrix-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 0, 0, 0.08) 3px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 999;
+}
+
+.matrix-header {
+  border-bottom: 1px solid var(--matrix-green-dim);
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
+}
+
+.matrix-header h1 {
+  font-size: 2rem;
+  margin: 0 0 0.25rem 0;
+  text-shadow: 0 0 8px var(--matrix-green);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.matrix-header .matrix-subtitle {
+  font-size: 0.8rem;
+  color: var(--matrix-green-dim);
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+
+.matrix-back-link {
+  display: inline-block;
+  color: var(--matrix-green-dim);
+  text-decoration: none;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--matrix-border);
+  padding: 0.25rem 0.75rem;
+  transition: color 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.matrix-back-link:hover {
+  color: var(--matrix-green);
+  border-color: var(--matrix-green-dim);
+  box-shadow: 0 0 6px var(--matrix-green-glow);
+}
+
+/* --- List page --- */
+
+.matrix-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 900px;
+}
+
+.matrix-list-item {
+  display: flex;
+  align-items: baseline;
+  gap: 1.5rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--matrix-border);
+}
+
+.matrix-list-item:last-child {
+  border-bottom: none;
+}
+
+.matrix-list-item .matrix-date {
+  font-size: 0.75rem;
+  color: var(--matrix-green-dim);
+  white-space: nowrap;
+  min-width: 10ch;
+}
+
+.matrix-list-item .matrix-author {
+  font-size: 0.75rem;
+  color: var(--matrix-green-dim);
+  white-space: nowrap;
+  min-width: 8ch;
+}
+
+.matrix-list-item .matrix-hash {
+  font-size: 0.75rem;
+  color: var(--matrix-green-dim);
+  white-space: nowrap;
+  font-variant-ligatures: none;
+}
+
+.matrix-entry-link {
+  color: var(--matrix-green);
+  text-decoration: none;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  transition: text-shadow 0.15s;
+  flex: 1;
+}
+
+.matrix-entry-link:hover {
+  text-shadow: 0 0 8px var(--matrix-green);
+  text-decoration: underline;
+}
+
+.matrix-loading,
+.matrix-error {
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  margin-top: 2rem;
+}
+
+.matrix-error {
+  color: #ff4141;
+}
+
+/* --- Detail page --- */
+
+.matrix-detail {
+  max-width: 800px;
+}
+
+.matrix-detail h1 {
+  font-size: 1.3rem;
+  margin: 0 0 1.5rem 0;
+  text-shadow: 0 0 6px var(--matrix-green);
+  letter-spacing: 0.03em;
+  line-height: 1.4;
+  border-left: 3px solid var(--matrix-green);
+  padding-left: 1rem;
+}
+
+.matrix-detail .matrix-meta {
+  display: flex;
+  gap: 2rem;
+  font-size: 0.8rem;
+  color: var(--matrix-green-dim);
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.matrix-detail .matrix-meta span::before {
+  content: '> ';
+}
+
+.matrix-markdown {
+  line-height: 1.7;
+  font-size: 0.9rem;
+}
+
+.matrix-markdown h1,
+.matrix-markdown h2,
+.matrix-markdown h3 {
+  color: var(--matrix-green);
+  text-shadow: 0 0 4px var(--matrix-green-glow);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.matrix-markdown h1 { font-size: 1.1rem; }
+.matrix-markdown h2 { font-size: 1rem; }
+.matrix-markdown h3 { font-size: 0.9rem; }
+
+.matrix-markdown p {
+  margin: 0.5rem 0;
+  color: var(--matrix-green);
+}
+
+.matrix-markdown ul,
+.matrix-markdown ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.matrix-markdown li {
+  margin: 0.25rem 0;
+}
+
+.matrix-markdown li::marker {
+  color: var(--matrix-green-dim);
+}
+
+.matrix-markdown strong {
+  color: var(--matrix-green);
+  text-shadow: 0 0 4px var(--matrix-green-glow);
+}
+
+.matrix-markdown code {
+  background: var(--matrix-green-glow);
+  border: 1px solid var(--matrix-border);
+  padding: 0.1em 0.4em;
+  font-family: var(--matrix-font);
+  font-size: 0.85em;
+}
+
+.matrix-markdown pre {
+  background: rgba(0, 255, 65, 0.04);
+  border: 1px solid var(--matrix-border);
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+
+.matrix-markdown pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.matrix-markdown hr {
+  border: none;
+  border-top: 1px solid var(--matrix-border);
+  margin: 1.5rem 0;
+}
+
+.matrix-markdown a {
+  color: var(--matrix-green);
+  text-decoration: underline;
+}
+
+.matrix-markdown a:hover {
+  text-shadow: 0 0 6px var(--matrix-green);
+}

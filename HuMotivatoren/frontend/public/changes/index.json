@@ -1,0 +1,62 @@
+[
+  {
+    "hash": "a1b2c3d",
+    "title": "feat: scaffold HuMotivatoren project structure",
+    "date": "2026-04-01T10:00:00Z",
+    "author": "marcin"
+  },
+  {
+    "hash": "e4f5a6b",
+    "title": "feat: add motivate endpoint with LLM integration",
+    "date": "2026-04-03T14:22:00Z",
+    "author": "alex"
+  },
+  {
+    "hash": "c7d8e9f",
+    "title": "fix: correct personality parameter validation",
+    "date": "2026-04-05T09:11:00Z",
+    "author": "sara"
+  },
+  {
+    "hash": "f0a1b2c",
+    "title": "feat: add frontend React app with personality selector",
+    "date": "2026-04-07T16:45:00Z",
+    "author": "marcin"
+  },
+  {
+    "hash": "3d4e5f6",
+    "title": "test: add integration tests for motivate route",
+    "date": "2026-04-09T11:30:00Z",
+    "author": "alex"
+  },
+  {
+    "hash": "7a8b9c0",
+    "title": "chore: add GitHub Actions CI pipeline",
+    "date": "2026-04-11T08:00:00Z",
+    "author": "sara"
+  },
+  {
+    "hash": "1e2f3a4",
+    "title": "refactor: extract LLM provider into service layer",
+    "date": "2026-04-13T13:15:00Z",
+    "author": "marcin"
+  },
+  {
+    "hash": "b5c6d7e",
+    "title": "feat: implement health check endpoint",
+    "date": "2026-04-14T10:00:00Z",
+    "author": "alex"
+  },
+  {
+    "hash": "f8a9b0c",
+    "title": "docs: add README and TESTING documentation",
+    "date": "2026-04-15T17:00:00Z",
+    "author": "sara"
+  },
+  {
+    "hash": "1d2e3f4",
+    "title": "feat: development history page with matrix styling",
+    "date": "2026-04-16T09:00:00Z",
+    "author": "marcin"
+  }
+]
