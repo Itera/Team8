@@ -15,3 +15,4 @@
 - 4 personality modes: silly, serious, sports, nerdy
 - Backend app.ts exports app separately from index.ts for testability (Charles needs this)
 - PR opened on feature/project-structure branch (PR #1)
+- 2026-04-16: LLM integration review complete (feature/llm-quotes PR #9). ADR documented, Azure OpenAI gpt-4o-mini deployment verified, Itera values compliance confirmed in system prompts, content safety guardrail validated. Commit da21bb1.

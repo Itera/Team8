@@ -14,3 +14,4 @@
 - Backend app.ts must export app separately from server start (index.ts) for supertest to work
 - 4 personality types: silly, serious, sports, nerdy
 - Branch was `feature/project-structure` (not `squad/project-structure` as initially expected)
+- 2026-04-16: llmService.test.ts coverage complete (feature/llm-quotes). 13 tests covering happy path, all 4 personalities, fallback scenarios (missing config, axios error, JSON parse), default personality. All tests passing.
