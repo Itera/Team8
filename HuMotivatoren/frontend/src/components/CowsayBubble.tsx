@@ -4,9 +4,18 @@ interface CowsayBubbleProps {
   inputText: string;
 }
 
+let _audioCtx: AudioContext | null = null;
+function getAudioContext(): AudioContext {
+  if (!_audioCtx || _audioCtx.state === 'closed') {
+    _audioCtx = new AudioContext();
+  }
+  return _audioCtx;
+}
+
 function playMoo() {
   try {
-    const ctx = new AudioContext();
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') { ctx.resume(); }
     const now = ctx.currentTime;
 
     // --- Hoveddel: to oscillatorer blandet (sawtooth + square) for ku-klang ---
@@ -80,15 +89,15 @@ function playMoo() {
     osc2.start(now); osc2.stop(now + 1.45);
     noise.start(now); noise.stop(now + 1.45);
 
-    setTimeout(() => ctx.close(), 1800);
-  } catch {
-    // Nettleser støtter ikke Web Audio API
+  } catch (e) {
+    console.warn('CowsayBubble: Web Audio API unavailable', e);
   }
 }
 
 export function CowsayBubble({ inputText }: CowsayBubbleProps) {
   const [art, setArt] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const prevArtRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -101,11 +110,17 @@ export function CowsayBubble({ inputText }: CowsayBubbleProps) {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     debounceRef.current = setTimeout(async () => {
+      if (inputText.trim().length > 280) return;
+
+      if (abortRef.current) abortRef.current.abort();
+      abortRef.current = new AbortController();
+
       try {
         const res = await fetch('/api/cowsay', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: inputText }),
+          signal: abortRef.current.signal,
         });
         if (res.ok) {
           const data = await res.json();
@@ -116,13 +131,15 @@ export function CowsayBubble({ inputText }: CowsayBubbleProps) {
           }
           setArt(data.art);
         }
-      } catch {
-        // Ignorer feil stille
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') return;
+        console.warn('CowsayBubble: fetch failed', e);
       }
     }, 600);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      abortRef.current?.abort();
     };
   }, [inputText]);
 
