@@ -3,22 +3,22 @@ import type { MouthWordRequest, MouthWordResponse } from '../types/index.js';
 
 function getDeterministicFallback(request: MouthWordRequest): string {
   if (!request.mouthMoving) {
-    return 'Signal idle. The matrix is waiting.';
+    return 'Mic check: even my silence needs a subtitle.';
   }
 
   if (typeof request.confidence !== 'number') {
-    return 'Signal received. The matrix whispers in green.';
+    return 'My lips moved, my script improvised a tiny punchline.';
   }
 
   if (request.confidence >= 0.8) {
-    return 'Signal locked. Follow the green cursor.';
+    return 'High confidence: my joke landed before I finished speaking.';
   }
 
   if (request.confidence >= 0.5) {
-    return 'Signal unstable. The matrix requests one more word.';
+    return 'Medium signal: this joke buffering icon is my co-host.';
   }
 
-  return 'Weak signal. The matrix asks for another blink.';
+  return 'Low signal: even my whisper is trying stand-up tonight.';
 }
 
 export async function getMouthWord(request: MouthWordRequest): Promise<MouthWordResponse> {

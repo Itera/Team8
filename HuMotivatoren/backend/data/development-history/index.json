@@ -1,5 +1,41 @@
 [
   {
+    "hash": "b675770",
+    "title": "fix: personality selection and CORS for port 5174 (#22)",
+    "date": "2026-04-16T17:04:02+02:00",
+    "author": "EmilItera"
+  },
+  {
+    "hash": "3d0761f",
+    "title": "docs: refresh project markdown for current app state",
+    "date": "2026-04-16T14:54:19+00:00",
+    "author": "root"
+  },
+  {
+    "hash": "a2180b9",
+    "title": "Merge origin/main into fix/development-history-real-commits",
+    "date": "2026-04-16T16:44:38+02:00",
+    "author": "hejuhenryk"
+  },
+  {
+    "hash": "48c9458",
+    "title": "fix: generate development history from real git commits",
+    "date": "2026-04-16T16:35:08+02:00",
+    "author": "hejuhenryk"
+  },
+  {
+    "hash": "1e95509",
+    "title": "add chaos weather dashboard analysis",
+    "date": "2026-04-16T14:17:01+00:00",
+    "author": "root"
+  },
+  {
+    "hash": "ddd0c36",
+    "title": "feat: add Rottweiler easter egg feature mirroring cat feature (#14)",
+    "date": "2026-04-16T16:15:00+02:00",
+    "author": "Espen Berglund"
+  },
+  {
     "hash": "711794e",
     "title": "Merge branch 'feat/word-of-your-mouth-realtime-subtitles'",
     "date": "2026-04-16T16:01:23+02:00",

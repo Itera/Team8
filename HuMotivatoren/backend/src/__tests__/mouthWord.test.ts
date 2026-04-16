@@ -44,7 +44,7 @@ describe('POST /api/word-of-your-mouth/signal', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
-      transmission: 'Signal unstable. The matrix requests one more word.',
+      transmission: 'Medium signal: this joke buffering icon is my co-host.',
       source: 'fallback',
       insight: 'Moderate mouth motion detected. The matrix signal is unstable but readable.',
     });
@@ -58,7 +58,7 @@ describe('POST /api/word-of-your-mouth/signal', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
-      transmission: 'Signal idle. The matrix is waiting.',
+      transmission: 'Mic check: even my silence needs a subtitle.',
       source: 'fallback',
       insight: 'No visible mouth motion yet. The matrix is still observing your face for a live transmission.',
     });

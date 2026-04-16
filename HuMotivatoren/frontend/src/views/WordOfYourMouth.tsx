@@ -20,6 +20,22 @@ const FETCH_COOLDOWN_MS = 600;
 const SUBTITLE_DISPLAY_MS = 4000;
 const MATRIX_GLYPHS = '01ABCDEFHIKLMNOPRSTUVWXYZ#$%*+-<>[]{}';
 
+function getJokeSubtitleFromTransmission(transmission: string): string {
+  const firstLine =
+    transmission
+      .split(/\r?\n/u)
+      .map((line) => line.trim())
+      .find((line) => line.length > 0)
+    ?? transmission.trim();
+
+  const normalized = firstLine
+    .replace(/^transmission\s*[:\-]\s*/iu, '')
+    .replace(/^joke\s*[:\-]\s*/iu, '')
+    .trim();
+
+  return normalized || firstLine;
+}
+
 function clampRegion(region: MotionRegion, width: number, height: number): MotionRegion {
   const x = Math.max(0, Math.min(region.x, width - 1));
   const y = Math.max(0, Math.min(region.y, height - 1));
@@ -373,7 +389,7 @@ export default function WordOfYourMouth() {
             })
               .then((response) => {
                 setSignal(response);
-                setCurrentSubtitle(response.transmission);
+                setCurrentSubtitle(getJokeSubtitleFromTransmission(response.transmission));
                 setSubtitleFading(false);
 
                 if (subtitleTimeoutRef.current) {
@@ -442,7 +458,7 @@ export default function WordOfYourMouth() {
       <header className="bladerunner-header matrix-mouth-header">
         <h1 className="bladerunner-title">word_of_your_mouth</h1>
         <p className="bladerunner-subtitle">
-          ⚡ Mouth motion triggers matrix transmissions ⚡
+          ⚡ Mouth motion triggers live joke subtitles ⚡
         </p>
         <nav className="bladerunner-nav">
           <Link to="/" className="bladerunner-nav-link">
@@ -470,14 +486,14 @@ export default function WordOfYourMouth() {
               className={`matrix-mouth-subtitle ${subtitleFading ? 'fading' : ''}`}
               role="status"
               aria-live="assertive"
-              aria-label="Real-time matrix subtitle"
+              aria-label="Real-time joke subtitle"
             >
               {currentSubtitle}
             </div>
             <div className="matrix-mouth-hud">
               <span>Detector: {detectorLabel}</span>
               <span>Motion score: {motionScore}</span>
-              <span>Status: {mouthMoving ? 'Mouth movement detected' : 'Listening'}</span>
+              <span>Status: {mouthMoving ? 'Joke trigger detected' : 'Listening for joke trigger'}</span>
             </div>
           </div>
 
@@ -493,7 +509,7 @@ export default function WordOfYourMouth() {
                 Kamerasignalet blir tegnet om som ekte matrix-bokstaver, ikke som et grønt videofilter med tegn oppå.
               </p>
               <p>
-                Når munnen beveger seg, sender siden levende bevegelsesdata til backend og ber om en ny matrix-transmisjon.
+                Når munnen beveger seg, sender siden levende bevegelsesdata til backend og henter en ny vitselinje fra transmisjonen.
               </p>
               <p>
                 Fallback uten face landmarks bruker et nedre sentrumsområde i videobildet og kan trigges av annen bevegelse nær ansiktet.
@@ -504,7 +520,7 @@ export default function WordOfYourMouth() {
 
         <section className="matrix-mouth-panel matrix-mouth-signal-panel" aria-live="polite">
           <div className="matrix-mouth-output-header">
-            <h2>Signal Feed</h2>
+            <h2>Joke Feed</h2>
             <span>{signalLoading ? 'Receiving...' : 'Standby'}</span>
           </div>
 
@@ -516,7 +532,7 @@ export default function WordOfYourMouth() {
 
           {signal ? (
             <article className="matrix-mouth-signal-card">
-              <p className="matrix-mouth-signal-label">Transmission</p>
+              <p className="matrix-mouth-signal-label">Joke line</p>
               <h3>{signal.transmission}</h3>
               <p className="matrix-mouth-signal-copy">{signal.insight}</p>
               <div className="matrix-mouth-signal-meta">
@@ -526,7 +542,7 @@ export default function WordOfYourMouth() {
             </article>
           ) : (
             <div className="matrix-mouth-empty-state">
-              <p>Open your mouth or speak silently to trigger the first intercept.</p>
+              <p>Open your mouth or speak silently to trigger the first joke intercept.</p>
               <p>The page waits for visible motion before calling the backend endpoint.</p>
             </div>
           )}
