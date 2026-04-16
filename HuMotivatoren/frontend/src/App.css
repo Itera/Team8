@@ -157,3 +157,50 @@ body {
     transform: translateY(0);
   }
 }
+
+/* ── Accessibility additions ── */
+
+/* Skip-to-main link: hidden until focused */
+.skip-link {
+  position: absolute;
+  top: -999px;
+  left: 8px;
+  z-index: 9999;
+  padding: 0.6rem 1.2rem;
+  background: #ffed4a;
+  color: #000;
+  font-weight: 700;
+  border-radius: 0 0 6px 6px;
+  text-decoration: none;
+  transition: top 0.1s;
+}
+.skip-link:focus {
+  top: 0;
+}
+
+/* Label for task input */
+.bladerunner-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 0.4rem;
+}
+
+/* Personality fieldset — remove default browser styling */
+.bladerunner-fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+.bladerunner-legend {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 0.5rem;
+}

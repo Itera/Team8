@@ -14,7 +14,7 @@ type PersonalityOption = NonNullable<MotivationRequest["personality"]>;
 
 const PERSONALITIES: { value: PersonalityOption; label: string }[] = [
   { value: "silly", label: "😜 Useriøs" },
-  { value: "serious", label: "🧐 Seriøs" },
+  { value: "serious", label: "�� Seriøs" },
   { value: "sports", label: "⚽ Sport" },
   { value: "nerdy", label: "🤓 Nerd" },
 ];
@@ -124,35 +124,29 @@ interface HomeProps {
 }
 
 function Home({
-  task,
-  setTask,
-  personality,
-  setPersonality,
-  loading,
-  result,
-  error,
-  handleSubmit,
-  catImageUrl,
-  catFact,
-  catBreed,
+  task, setTask, personality, setPersonality,
+  loading, result, error, handleSubmit,
+  catImageUrl, catFact, catBreed,
 }: HomeProps) {
   return (
     <div className="bladerunner-page">
+      <a href="#main-content" className="skip-link">Hopp til innhold</a>
       <div className="bladerunner-scanline" />
 
-      {/* Real cat photo overlay when cat word is detected */}
+      {/* Cat photo background overlay */}
       {catImageUrl && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
           backgroundImage: `url(${catImageUrl})`,
           backgroundSize: 'cover', backgroundPosition: 'center',
           opacity: 0.18, pointerEvents: 'none', zIndex: 0,
-        }} />
+        }} aria-hidden="true" />
       )}
+
       <header className="bladerunner-header">
         <h1 className="bladerunner-title">HuMotivatoren</h1>
         <p className="bladerunner-subtitle">⚡ Unreasonably Relevant Motivation Engine ⚡</p>
-        <nav className="bladerunner-nav">
+        <nav className="bladerunner-nav" aria-label="Sidenavigasjon">
           <Link to="/development_history" className="bladerunner-nav-link">
             📊 Development History
           </Link>
@@ -160,15 +154,27 @@ function Home({
       </header>
 
       <div className="bladerunner-container">
-        <main>
-          <form onSubmit={handleSubmit} className="bladerunner-form">
+        <main id="main-content" aria-label="HuMotivatoren – motivasjonsverktøy">
+          <form
+            onSubmit={handleSubmit}
+            className="bladerunner-form"
+            aria-label="Motivasjonsskjema"
+            noValidate
+          >
+            <label htmlFor="task-input" className="bladerunner-label">
+              Hva skal du gjøre?
+            </label>
             <input
+              id="task-input"
               type="text"
               value={task}
-              onChange={(e) => setTask(e.target.value)}
-              placeholder="Hva skal du gjøre? (f.eks. 'lese nyheter')"
+              onChange={(e) => { if (e.target.value.length <= 280) setTask(e.target.value); }}
+              placeholder="F.eks. 'lese nyheter'"
               disabled={loading}
               className="bladerunner-input"
+              maxLength={280}
+              autoComplete="off"
+              aria-describedby={error ? 'motivate-error' : undefined}
             />
 
             <CowsayBubble inputText={task} />
@@ -176,12 +182,18 @@ function Home({
 
             {/* Cat info card — appears when a cat word is typed */}
             {catImageUrl && (
-              <div style={{
-                background: 'rgba(0,255,255,0.07)', border: '1px solid var(--br-cyan)',
-                borderRadius: '4px', padding: '1rem 1.25rem', marginBottom: '1rem',
-                display: 'flex', gap: '1rem', alignItems: 'flex-start',
-              }}>
-                <img src={catImageUrl} alt="Søt katt"
+              <div
+                role="region"
+                aria-label="Katteinformasjon"
+                style={{
+                  background: 'rgba(0,255,255,0.07)', border: '1px solid var(--br-cyan)',
+                  borderRadius: '4px', padding: '1rem 1.25rem', marginBottom: '1rem',
+                  display: 'flex', gap: '1rem', alignItems: 'flex-start',
+                }}
+              >
+                <img
+                  src={catImageUrl}
+                  alt={catBreed ? `${catBreed.name} katt` : 'Søt katt'}
                   style={{ width: '110px', height: '110px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0, border: '1px solid var(--br-cyan)' }}
                 />
                 <div>
@@ -196,24 +208,29 @@ function Home({
                 </div>
               </div>
             )}
-            
-            <div className="bladerunner-button-group">
-              {PERSONALITIES.map(({ value, label }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setPersonality(value)}
-                  className={`bladerunner-button ${personality === value ? 'active' : ''}`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+
+            <fieldset className="bladerunner-fieldset">
+              <legend className="bladerunner-legend">Velg tone:</legend>
+              <div className="bladerunner-button-group" role="group">
+                {PERSONALITIES.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setPersonality(value)}
+                    className={`bladerunner-button ${personality === value ? 'active' : ''}`}
+                    aria-pressed={personality === value}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
 
             <button
               type="submit"
               disabled={loading || !task.trim()}
               className="bladerunner-button bladerunner-submit-btn"
+              aria-busy={loading}
             >
               {loading ? "🤖 AI genererer..." : "Gi meg motivasjon! 💪"}
             </button>
@@ -238,13 +255,23 @@ function Home({
           )}
 
           {error && (
-            <div className="bladerunner-error">
+            <div
+              id="motivate-error"
+              className="bladerunner-error"
+              role="alert"
+              aria-live="assertive"
+            >
               <p style={{ margin: 0 }}>😅 {error}</p>
             </div>
           )}
 
           {result && (
-            <div className="bladerunner-result" style={{ position: "relative" }}>
+            <section
+              className="bladerunner-result"
+              aria-label="Motivasjonssvar"
+              aria-live="polite"
+              style={{ position: "relative" }}
+            >
               <span
                 style={{
                   position: "absolute",
@@ -273,77 +300,33 @@ function Home({
               >
                 Motivasjon for: {task}
               </p>
-              <div
-                style={{
-                  fontSize: "4rem",
-                  textAlign: "center",
-                  marginBottom: "1rem",
-                }}
-              >
+
+              <div style={{ fontSize: "4rem", textAlign: "center", marginBottom: "1rem" }}>
                 {result.emoji}
               </div>
 
               <div style={{ marginBottom: "1.5rem" }}>
-                <h2
-                  style={{
-                    color: "var(--br-cyan)",
-                    marginBottom: "0.5rem",
-                    fontSize: "1.2rem",
-                  }}
-                >
+                <h2 style={{ color: "var(--br-cyan)", marginBottom: "0.5rem", fontSize: "1.2rem" }}>
                   💬 Sitat
                 </h2>
-                <p
-                  style={{
-                    fontSize: "1.3rem",
-                    fontStyle: "italic",
-                    margin: 0,
-                    color: "var(--br-text)",
-                  }}
-                >
+                <p style={{ fontSize: "1.3rem", fontStyle: "italic", margin: 0, color: "var(--br-text)" }}>
                   "{result.quote}"
                 </p>
               </div>
 
               <div style={{ marginBottom: "1.5rem" }}>
-                <h2
-                  style={{
-                    color: "var(--br-cyan)",
-                    marginBottom: "0.5rem",
-                    fontSize: "1.2rem",
-                  }}
-                >
+                <h2 style={{ color: "var(--br-cyan)", marginBottom: "0.5rem", fontSize: "1.2rem" }}>
                   📚 Fakta
                 </h2>
                 <p style={{ margin: 0, color: "var(--br-text)" }}>{result.fact}</p>
               </div>
 
               <div style={{ marginBottom: "1.5rem" }}>
-                <h2
-                  style={{
-                    color: "var(--br-cyan)",
-                    marginBottom: "0.5rem",
-                    fontSize: "1.2rem",
-                  }}
-                >
+                <h2 style={{ color: "var(--br-cyan)", marginBottom: "0.5rem", fontSize: "1.2rem" }}>
                   💡 Tips
                 </h2>
                 <p style={{ margin: 0, color: "var(--br-text)" }}>{result.tip}</p>
               </div>
-
-              {result.gifUrl && !catImageUrl && (
-                <div style={{ textAlign: "center", marginTop: "1rem" }}>
-                  <img
-                    src={result.gifUrl}
-                    alt="Motiverende GIF"
-                    style={{
-                      maxWidth: "100%",
-                      border: "2px solid var(--br-cyan)",
-                      boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                    }}
-                  />
-                </div>
-              )}
 
               {/* Cat section in result */}
               {catImageUrl && (catBreed || catFact) && (
@@ -354,19 +337,26 @@ function Home({
                 </div>
               )}
 
-              {catImageUrl && (
+              {/* GIF + cat image row */}
+              {(result.gifUrl || catImageUrl) && (
                 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem', flexWrap: 'wrap' }}>
                   {result.gifUrl && (
-                    <img src={result.gifUrl} alt="Motiverende GIF"
+                    <img
+                      src={result.gifUrl}
+                      alt="Motiverende GIF"
                       style={{ flex: '1 1 45%', maxWidth: '48%', minWidth: '200px', border: '2px solid var(--br-cyan)', objectFit: 'cover' }}
                     />
                   )}
-                  <img src={catImageUrl} alt="Søt katt"
-                    style={{ flex: '1 1 45%', maxWidth: '48%', minWidth: '200px', border: '2px solid var(--br-cyan)', objectFit: 'cover' }}
-                  />
+                  {catImageUrl && (
+                    <img
+                      src={catImageUrl}
+                      alt={catBreed?.name ?? 'Søt katt'}
+                      style={{ flex: '1 1 45%', maxWidth: '48%', minWidth: '200px', border: '2px solid var(--br-cyan)', objectFit: 'cover' }}
+                    />
+                  )}
                 </div>
               )}
-            </div>
+            </section>
           )}
         </main>
       </div>
