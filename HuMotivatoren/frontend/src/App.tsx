@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import type { MotivationRequest, MotivationResponse } from './types';
+import { CowsayBubble } from './components/CowsayBubble';
+import { IrrelevantStats } from './components/IrrelevantStats';
 
 type PersonalityOption = NonNullable<MotivationRequest['personality']>;
 
@@ -123,6 +125,9 @@ function App() {
                 boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
               }}
             />
+
+            <CowsayBubble inputText={task} />
+            <IrrelevantStats inputText={task} />
             
             <div style={{ 
               display: 'flex', 
