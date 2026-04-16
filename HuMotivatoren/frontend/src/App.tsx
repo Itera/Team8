@@ -46,17 +46,45 @@ function App() {
     }
   };
 
+  const CAT_EMOJIS = ['🐱', '🐈', '😸', '😻', '🐾', '😺', '🐈\u200D⬛'];
+
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: '#fce4f0',
       padding: '2rem',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      position: 'relative',
+      overflow: 'hidden'
     }}>
+      {/* Cat background layer */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, 72px)',
+        gridAutoRows: '72px',
+        overflow: 'hidden',
+        pointerEvents: 'none',
+        zIndex: 0,
+        opacity: 0.22,
+      }}>
+        {Array.from({ length: 300 }).map((_, i) => (
+          <span key={i} style={{ fontSize: '2.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {CAT_EMOJIS[i % CAT_EMOJIS.length]}
+          </span>
+        ))}
+      </div>
+
       <div style={{ 
         maxWidth: '800px', 
         margin: '0 auto', 
-        textAlign: 'center' 
+        textAlign: 'center',
+        position: 'relative',
+        zIndex: 1
       }}>
         <header style={{ marginBottom: '2rem' }}>
           <h1 style={{ 
