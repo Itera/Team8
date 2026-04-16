@@ -90,8 +90,8 @@ const FEATURES: Feature[] = [
   {
     emoji: '🐍',
     name: 'Snake Ambient',
-    description: 'En innebygd Snake-klon som lever i bakgrunnen på forsiden — styr ormen med piltastene og se den krasje og starte på nytt.',
-    access: 'På forsiden: bruk piltastene for å styre. Trykk R, Enter eller mellomrom for å restarte etter game over.',
+    description: 'Et eget Snake-område med tydelig heading, tastaturinstruksjoner og tilgjengelig board/status-visning.',
+    access: 'Gå til /snake fra navigasjonsmenyen. Bruk piltastene for å styre, og R/Enter/mellomrom for restart.',
     color: 'green',
   },
 ];
@@ -117,6 +117,7 @@ export default function Features() {
         <p className="bladerunner-subtitle">⚡ All Systems Operational ⚡</p>
         <nav className="bladerunner-nav">
           <Link to="/" className="bladerunner-back">← Hjem</Link>
+          <Link to="/snake" className="bladerunner-nav-link">🐍 Snake Ambient</Link>
           <Link to="/chaos" className="bladerunner-nav-link">🌪 Chaos Dashboard</Link>
           <Link to="/development_history" className="bladerunner-nav-link">📊 Development History</Link>
           <Link to="/word_of_your_mouth" className="bladerunner-nav-link">👄 Word of Your Mouth</Link>
