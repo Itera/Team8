@@ -215,9 +215,27 @@ function Home({
               disabled={loading || !task.trim()}
               className="bladerunner-button bladerunner-submit-btn"
             >
-              {loading ? "⏳ Tenker..." : "Gi meg motivasjon! 💪"}
+              {loading ? "🤖 AI genererer..." : "Gi meg motivasjon! 💪"}
             </button>
           </form>
+
+          {loading && (
+            <div
+              style={{
+                background: "rgba(0,255,255,0.07)",
+                border: "1px solid var(--br-cyan)",
+                borderRadius: "4px",
+                padding: "2rem",
+                textAlign: "center",
+                animation: "pulse 1.5s ease-in-out infinite",
+              }}
+            >
+              <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
+              <p style={{ color: "var(--br-cyan)", fontSize: "1.2rem", margin: 0 }}>
+                🤖 Henter motivasjon fra AI...
+              </p>
+            </div>
+          )}
 
           {error && (
             <div className="bladerunner-error">
@@ -226,7 +244,35 @@ function Home({
           )}
 
           {result && (
-            <div className="bladerunner-result">
+            <div className="bladerunner-result" style={{ position: "relative" }}>
+              <span
+                style={{
+                  position: "absolute",
+                  top: "1rem",
+                  right: "1rem",
+                  background: "var(--br-cyan)",
+                  color: "#0a0a0f",
+                  fontSize: "0.72rem",
+                  fontWeight: "bold",
+                  padding: "0.25rem 0.65rem",
+                  borderRadius: "2px",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                }}
+              >
+                ✨ AI-generert
+              </span>
+
+              <p
+                style={{
+                  fontSize: "0.85rem",
+                  color: "var(--br-orange)",
+                  margin: "0 0 1rem 0",
+                  fontStyle: "italic",
+                }}
+              >
+                Motivasjon for: {task}
+              </p>
               <div
                 style={{
                   fontSize: "4rem",
