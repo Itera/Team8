@@ -1,62 +1,140 @@
 [
   {
-    "hash": "a1b2c3d",
-    "title": "feat: scaffold HuMotivatoren project structure",
-    "date": "2026-04-01T10:00:00Z",
-    "author": "marcin"
+    "hash": "711794e",
+    "title": "Merge branch 'feat/word-of-your-mouth-realtime-subtitles'",
+    "date": "2026-04-16T16:01:23+02:00",
+    "author": "hejuhenryk"
   },
   {
-    "hash": "e4f5a6b",
-    "title": "feat: add motivate endpoint with LLM integration",
-    "date": "2026-04-03T14:22:00Z",
-    "author": "alex"
+    "hash": "269a9cb",
+    "title": "feat: add word of your mouth with real-time matrix subtitles",
+    "date": "2026-04-16T15:59:10+02:00",
+    "author": "hejuhenryk"
   },
   {
-    "hash": "c7d8e9f",
-    "title": "fix: correct personality parameter validation",
-    "date": "2026-04-05T09:11:00Z",
-    "author": "sara"
+    "hash": "0978e09",
+    "title": "fix: expand container to full screen width for two-column layout",
+    "date": "2026-04-16T15:57:40+02:00",
+    "author": "Lalaina Razafindraibe"
   },
   {
-    "hash": "f0a1b2c",
-    "title": "feat: add frontend React app with personality selector",
-    "date": "2026-04-07T16:45:00Z",
-    "author": "marcin"
+    "hash": "b2252ad",
+    "title": "feat: two-column layout — left: input/cowsay/cat/stats, right: tone/submit/result",
+    "date": "2026-04-16T15:56:17+02:00",
+    "author": "Lalaina Razafindraibe"
   },
   {
-    "hash": "3d4e5f6",
-    "title": "test: add integration tests for motivate route",
-    "date": "2026-04-09T11:30:00Z",
-    "author": "alex"
+    "hash": "bada865",
+    "title": "merge: resolve conflict — keep section+aria-label (a11y) + AI badge + task label (main)",
+    "date": "2026-04-16T15:34:20+02:00",
+    "author": "Lalaina Razafindraibe"
   },
   {
-    "hash": "7a8b9c0",
-    "title": "chore: add GitHub Actions CI pipeline",
-    "date": "2026-04-11T08:00:00Z",
-    "author": "sara"
+    "hash": "c8f2945",
+    "title": "fix: remove float:left from legend so personality buttons stay on one line",
+    "date": "2026-04-16T15:33:10+02:00",
+    "author": "Lalaina Razafindraibe"
   },
   {
-    "hash": "1e2f3a4",
-    "title": "refactor: extract LLM provider into service layer",
-    "date": "2026-04-13T13:15:00Z",
-    "author": "marcin"
+    "hash": "45d457e",
+    "title": "merge: resolve App.tsx conflict — combine cat feature (main) + a11y fixes (fix/security-a11y-review)",
+    "date": "2026-04-16T15:30:20+02:00",
+    "author": "Lalaina Razafindraibe"
   },
   {
-    "hash": "b5c6d7e",
-    "title": "feat: implement health check endpoint",
-    "date": "2026-04-14T10:00:00Z",
-    "author": "alex"
+    "hash": "5ba6352",
+    "title": "feat: LLM-powered personality-aware quote generation via Azure OpenAI (#9)",
+    "date": "2026-04-16T15:28:43+02:00",
+    "author": "Espen Berglund"
   },
   {
-    "hash": "f8a9b0c",
-    "title": "docs: add README and TESTING documentation",
-    "date": "2026-04-15T17:00:00Z",
-    "author": "sara"
+    "hash": "e936a68",
+    "title": "fix: security hardening + accessibility (WCAG) fixes",
+    "date": "2026-04-16T15:25:46+02:00",
+    "author": "Lalaina Razafindraibe"
   },
   {
-    "hash": "1d2e3f4",
-    "title": "feat: development history page with matrix styling",
-    "date": "2026-04-16T09:00:00Z",
-    "author": "marcin"
+    "hash": "e8af34b",
+    "title": "merge: pull main (blade runner theme) + keep all cat features",
+    "date": "2026-04-16T15:21:38+02:00",
+    "author": "miabjo"
+  },
+  {
+    "hash": "cf7c591",
+    "title": "fix: replace escaped unicode with actual emoji in cat info card",
+    "date": "2026-04-16T15:19:06+02:00",
+    "author": "miabjo"
+  },
+  {
+    "hash": "59ee4e9",
+    "title": "feat: restore cat API, quotes, cat background overlay and cat info card",
+    "date": "2026-04-16T15:10:52+02:00",
+    "author": "miabjo"
+  },
+  {
+    "hash": "157c083",
+    "title": "fix: make main page mobile friendly for Blade Runner theme",
+    "date": "2026-04-16T15:09:57+02:00",
+    "author": "hejuhenryk"
+  },
+  {
+    "hash": "d49a810",
+    "title": "feat: blade runner 2049 cyberpunk theme with prominent navigation",
+    "date": "2026-04-16T14:58:30+02:00",
+    "author": "hejuhenryk"
+  },
+  {
+    "hash": "5810351",
+    "title": "refactor: move development history to backend API and storage",
+    "date": "2026-04-16T14:48:55+02:00",
+    "author": "hejuhenryk"
+  },
+  {
+    "hash": "6624c0f",
+    "title": "Auto stash before rebase of \"feat/development-history\" onto \"main\"",
+    "date": "2026-04-16T14:48:55+02:00",
+    "author": "Marcin Sawczuk-Szymkiewicz"
+  },
+  {
+    "hash": "252277c",
+    "title": "feat: add development_history page with matrix styling and auto-generate workflow",
+    "date": "2026-04-16T14:48:55+02:00",
+    "author": "hejuhenryk"
+  },
+  {
+    "hash": "9489080",
+    "title": "feat: do not read me added",
+    "date": "2026-04-16T14:48:13+02:00",
+    "author": "Marcin Sawczuk-Szymkiewicz"
+  },
+  {
+    "hash": "41d7b12",
+    "title": "feat: cat API background, quotable quotes, flat result layout fixes",
+    "date": "2026-04-16T14:32:14+02:00",
+    "author": "miabjo"
+  },
+  {
+    "hash": "f1261e5",
+    "title": "Merge remote-tracking branch 'origin/main' into miasinbranch",
+    "date": "2026-04-16T13:45:40+02:00",
+    "author": "miabjo"
+  },
+  {
+    "hash": "03f8eef",
+    "title": "feat: replace background with cute cat emojis",
+    "date": "2026-04-16T13:35:28+02:00",
+    "author": "miabjo"
+  },
+  {
+    "hash": "b822721",
+    "title": "feat: legg til cowsay-kommentar og irrelevant statistikk",
+    "date": "2026-04-16T13:34:40+02:00",
+    "author": "Lalaina Razafindraibe"
+  },
+  {
+    "hash": "e824397",
+    "title": "feat: scaffold HuMotivatoren project structure (#1)",
+    "date": "2026-04-16T13:11:00+02:00",
+    "author": "Espen Berglund"
   }
 ]
