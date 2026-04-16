@@ -1,0 +1,497 @@
+/* Blade Runner 2049 aesthetic - cyberpunk noir theme */
+
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap");
+
+:root {
+  --br-bg: #0a0e27;
+  --br-bg-dark: #050811;
+  --br-cyan: #00d9ff;
+  --br-pink: #ff006e;
+  --br-purple: #b537f2;
+  --br-amber: #ffd60a;
+  --br-green: #00ff41;
+  --br-text: #e0e0e0;
+  --br-border: #1a1f3a;
+}
+
+.bladerunner-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--br-bg) 0%, var(--br-bg-dark) 100%);
+  color: var(--br-text);
+  font-family: "Share Tech Mono", monospace;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Rain effect overlay */
+.bladerunner-page::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 217, 255, 0.03) 2px,
+      rgba(0, 217, 255, 0.03) 4px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 217, 255, 0.02) 2px,
+      rgba(0, 217, 255, 0.02) 4px
+    );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bladerunner-header {
+  position: relative;
+  z-index: 10;
+  padding: 3rem 2rem 2rem;
+  border-bottom: 2px solid var(--br-cyan);
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+  background: linear-gradient(180deg, rgba(0, 217, 255, 0.08) 0%, transparent 100%);
+}
+
+.bladerunner-title {
+  font-family: "Orbitron", sans-serif;
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  background: linear-gradient(90deg, var(--br-cyan) 0%, var(--br-pink) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 40px rgba(0, 217, 255, 0.6);
+  filter: drop-shadow(0 0 20px rgba(255, 0, 110, 0.4));
+}
+
+.bladerunner-subtitle {
+  font-size: 0.9rem;
+  color: var(--br-cyan);
+  margin: 0 0 1.5rem 0;
+  letter-spacing: 0.1em;
+  opacity: 0.9;
+  text-transform: uppercase;
+}
+
+/* Navigation */
+.bladerunner-nav {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.bladerunner-nav-link {
+  position: relative;
+  padding: 0.75rem 1.5rem;
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--br-cyan);
+  text-decoration: none;
+  border: 2px solid var(--br-cyan);
+  background: rgba(0, 217, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 217, 255, 0.2), inset 0 0 10px rgba(0, 217, 255, 0.05);
+}
+
+.bladerunner-nav-link:hover {
+  background: rgba(0, 217, 255, 0.15);
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.6), inset 0 0 20px rgba(0, 217, 255, 0.1);
+  color: var(--br-bg);
+  text-shadow: 0 0 10px var(--br-cyan);
+}
+
+/* Main content */
+.bladerunner-container {
+  position: relative;
+  z-index: 10;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.bladerunner-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.bladerunner-input {
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  font-family: "Share Tech Mono", monospace;
+  background: rgba(0, 217, 255, 0.08);
+  border: 2px solid var(--br-cyan);
+  color: var(--br-text);
+  border-radius: 0;
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.2), inset 0 0 10px rgba(0, 217, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.bladerunner-input:focus {
+  outline: none;
+  box-shadow: 0 0 25px rgba(0, 217, 255, 0.5), inset 0 0 15px rgba(0, 217, 255, 0.1);
+  border-color: var(--br-pink);
+}
+
+.bladerunner-input::placeholder {
+  color: rgba(0, 217, 255, 0.4);
+}
+
+.bladerunner-button-group {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.bladerunner-button {
+  padding: 0.75rem 1.5rem;
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 2px solid var(--br-purple);
+  background: rgba(181, 55, 242, 0.1);
+  color: var(--br-purple);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(181, 55, 242, 0.3);
+}
+
+.bladerunner-button:hover {
+  background: rgba(181, 55, 242, 0.2);
+  box-shadow: 0 0 20px rgba(181, 55, 242, 0.6);
+  transform: translateY(-2px);
+}
+
+.bladerunner-button.active {
+  background: var(--br-purple);
+  color: var(--br-bg);
+  box-shadow: 0 0 30px rgba(181, 55, 242, 0.8);
+}
+
+.bladerunner-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bladerunner-submit-btn {
+  padding: 1rem 2.5rem;
+  font-size: 1.2rem;
+  border: 2px solid var(--br-pink);
+  background: rgba(255, 0, 110, 0.1);
+  color: var(--br-pink);
+  box-shadow: 0 0 20px rgba(255, 0, 110, 0.3);
+}
+
+.bladerunner-submit-btn:hover:not(:disabled) {
+  background: rgba(255, 0, 110, 0.2);
+  box-shadow: 0 0 30px rgba(255, 0, 110, 0.8);
+  transform: translateY(-2px);
+}
+
+.bladerunner-result {
+  background: rgba(0, 217, 255, 0.08);
+  border: 2px solid var(--br-amber);
+  border-radius: 0;
+  padding: 2rem;
+  margin-top: 2rem;
+  box-shadow: 0 0 20px rgba(255, 214, 10, 0.3), inset 0 0 20px rgba(255, 214, 10, 0.05);
+}
+
+.bladerunner-error {
+  background: rgba(255, 0, 110, 0.1);
+  border: 2px solid var(--br-pink);
+  color: var(--br-pink);
+  padding: 1rem;
+  border-radius: 0;
+  margin-bottom: 1rem;
+  box-shadow: 0 0 15px rgba(255, 0, 110, 0.4);
+}
+
+/* List styling */
+.bladerunner-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bladerunner-list-item {
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--br-border);
+  border-left: 3px solid var(--br-cyan);
+  background: rgba(0, 217, 255, 0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.bladerunner-list-item:hover {
+  border-left-color: var(--br-pink);
+  background: rgba(0, 217, 255, 0.1);
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+  transform: translateX(4px);
+}
+
+.bladerunner-list-item a {
+  color: var(--br-cyan);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.bladerunner-list-item a:hover {
+  color: var(--br-pink);
+  text-shadow: 0 0 10px var(--br-pink);
+}
+
+.bladerunner-list-meta {
+  font-size: 0.8rem;
+  color: var(--br-green);
+  margin-top: 0.5rem;
+  opacity: 0.7;
+}
+
+/* Back link */
+.bladerunner-back {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  margin-bottom: 1.5rem;
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--br-green);
+  text-decoration: none;
+  border: 2px solid var(--br-green);
+  background: rgba(0, 255, 65, 0.05);
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+}
+
+.bladerunner-back:hover {
+  background: rgba(0, 255, 65, 0.15);
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
+  color: var(--br-bg);
+  text-shadow: 0 0 10px var(--br-green);
+}
+
+/* Markdown content */
+.bladerunner-markdown {
+  color: var(--br-text);
+  line-height: 1.6;
+}
+
+.bladerunner-markdown h1,
+.bladerunner-markdown h2,
+.bladerunner-markdown h3 {
+  color: var(--br-cyan);
+  font-family: "Orbitron", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.4);
+}
+
+.bladerunner-markdown p {
+  margin: 0.75rem 0;
+}
+
+.bladerunner-markdown code {
+  background: rgba(0, 217, 255, 0.1);
+  color: var(--br-green);
+  padding: 0.2em 0.4em;
+  border-radius: 0;
+  font-family: "Share Tech Mono", monospace;
+  font-size: 0.9em;
+}
+
+.bladerunner-markdown pre {
+  background: rgba(5, 8, 17, 0.8);
+  border: 1px solid var(--br-border);
+  border-left: 3px solid var(--br-green);
+  padding: 1rem;
+  overflow-x: auto;
+  border-radius: 0;
+  box-shadow: inset 0 0 10px rgba(0, 217, 255, 0.1);
+}
+
+.bladerunner-markdown pre code {
+  background: none;
+  color: var(--br-green);
+  padding: 0;
+}
+
+.bladerunner-markdown blockquote {
+  border-left: 3px solid var(--br-pink);
+  padding-left: 1rem;
+  margin-left: 0;
+  color: var(--br-text);
+  opacity: 0.8;
+  font-style: italic;
+}
+
+.bladerunner-markdown a {
+  color: var(--br-pink);
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.bladerunner-markdown a:hover {
+  color: var(--br-cyan);
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+}
+
+/* Scanline effect */
+@keyframes scanlines {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(10px); }
+}
+
+.bladerunner-scanline {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(0, 217, 255, 0.3);
+  box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+  animation: scanlines 8s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Mobile-first responsiveness for the main page */
+@media (max-width: 900px) {
+  .bladerunner-header {
+    padding: 2rem 1.25rem 1.5rem;
+  }
+
+  .bladerunner-title {
+    font-size: 2.5rem;
+    letter-spacing: 0.08em;
+  }
+
+  .bladerunner-container {
+    padding: 1.25rem;
+  }
+
+  .bladerunner-nav {
+    gap: 0.75rem;
+  }
+
+  .bladerunner-nav-link {
+    padding: 0.65rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .bladerunner-button {
+    padding: 0.65rem 1rem;
+    font-size: 0.75rem;
+  }
+
+  .bladerunner-submit-btn {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .bladerunner-header {
+    padding: 1.5rem 1rem 1.25rem;
+  }
+
+  .bladerunner-title {
+    font-size: 1.8rem;
+    letter-spacing: 0.04em;
+    line-height: 1.15;
+  }
+
+  .bladerunner-subtitle {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    margin-bottom: 1rem;
+  }
+
+  .bladerunner-container {
+    padding: 1rem;
+  }
+
+  .bladerunner-form {
+    gap: 1rem;
+  }
+
+  .bladerunner-input {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    font-size: 16px;
+  }
+
+  .bladerunner-nav {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bladerunner-nav-link {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .bladerunner-button-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .bladerunner-button {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .bladerunner-submit-btn {
+    max-width: none;
+    width: 100%;
+  }
+
+  .bladerunner-result {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .bladerunner-title {
+    font-size: 1.45rem;
+  }
+
+  .bladerunner-subtitle {
+    font-size: 0.65rem;
+  }
+
+  .bladerunner-button-group {
+    grid-template-columns: 1fr;
+  }
+}
