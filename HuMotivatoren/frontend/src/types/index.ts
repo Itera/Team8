@@ -12,15 +12,14 @@ export interface MotivationResponse {
   personality: string;
 }
 
-export interface DevelopmentHistoryEntry {
-  hash: string;
-  title: string;
-  date: string;
-  author: string;
+export interface MouthWordRequest {
+  mouthMoving: boolean;
+  confidence?: number;
 }
 
-export interface DevelopmentHistoryDetail extends DevelopmentHistoryEntry {
-  content: string;
+export interface MouthWordResponse {
+  text: string;
+  source: 'llm' | 'fallback';
 }
 
 export interface WordOfYourMouthSignalRequest {
@@ -33,4 +32,29 @@ export interface WordOfYourMouthSignal {
   insight: string;
   source: 'llm' | 'fallback';
   receivedAt: string;
+}
+
+export interface DevelopmentHistoryEntry {
+  hash: string;
+  title: string;
+  date: string;
+  author: string;
+}
+
+export interface DevelopmentHistoryDetail extends DevelopmentHistoryEntry {
+  content: string;
+}
+
+export interface ChaosWeatherResponse {
+  locationName: string;
+  latitude: number;
+  longitude: number;
+  temperature: number;
+  windSpeed: number;
+  precipitation: number;
+  weatherCode: number;
+  summary: string;
+  chaosLevel: number;
+  verdict: string;
+  recommendedAction: string;
 }

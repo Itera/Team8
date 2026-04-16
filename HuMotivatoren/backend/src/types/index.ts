@@ -39,3 +39,17 @@ export interface DevelopmentHistoryEntry {
 export interface DevelopmentHistoryDetail extends DevelopmentHistoryEntry {
   content: string;
 }
+
+export interface ChaosWeatherResponse {
+  locationName: string;
+  latitude: number;
+  longitude: number;
+  temperature: number;
+  windSpeed: number;
+  precipitation: number;
+  weatherCode: number;
+  summary: string;
+  chaosLevel: number;
+  verdict: string;
+  recommendedAction: string;
+}
