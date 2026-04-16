@@ -110,7 +110,7 @@ function App() {
                 e.currentTarget.style.outline = 'none';
               }}
             >
-              {tab === 'motivate' ? '💪 Motivér meg' : '🤔 Spør kua'}
+              {tab === 'motivate' ? '💪 Motivér meg' : '🎯 Spør coachen'}
             </button>
           ))}
         </nav>

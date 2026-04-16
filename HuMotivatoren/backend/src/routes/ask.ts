@@ -1,47 +1,80 @@
 import { Router } from 'express';
+import axios from 'axios';
 import type { AskRequest, AskResponse } from '../types/index.js';
 
 export const askRouter = Router();
 
-const MOTIVATIONAL_RESPONSES: Array<{
-  answer: (q: string) => string;
-  encouragement: string;
-  emoji: string;
-  irrelevantFact: string;
-}> = [
+// Fallback responses used when LLM API is unavailable
+const FALLBACK_RESPONSES: AskResponse[] = [
   {
-    answer: (q) => `Svaret på "${q}" er enklere enn du tror — du har allerede alt du trenger!`,
-    encouragement: 'Det at du spør viser at du allerede er halvveis der!',
+    answer: 'Du har allerede alt du trenger for å lykkes — stol på deg selv!',
+    encouragement: 'Det at du spør viser at du allerede er halvveis der.',
+    irrelevantFact: 'En gjennomsnittlig sky veier over 500 000 kg, men faller ikke ned. Du kan også klare dette.',
     emoji: '🚀',
-    irrelevantFact: 'En gjennomsnittlig sky veier over 500 000 kilo, men faller ikke ned. Du kan også klare dette.',
   },
   {
-    answer: (q) => `"${q}"? Fantastisk spørsmål! Universets svar er: JA, du klarer det!`,
+    answer: 'Ta ett steg av gangen. Fremdrift, ikke perfeksjon, er nøkkelen.',
     encouragement: 'Hvert steg fremover teller, uansett størrelse.',
+    irrelevantFact: 'Honningbier besøker 2 millioner blomster for å lage 500g honning. Tålmodighet lønner seg.',
     emoji: '🌟',
-    irrelevantFact: 'Honningbier flyr med ca. 25 km/t og besøker 2 millioner blomster for å lage 500g honning. Du er minst like hardt arbeidende.',
   },
   {
-    answer: (q) => `Forskning* viser at alle som spør om "${q}" oppnår suksess innen rimelig tid. (*Kilde: kua vår)`,
-    encouragement: 'Ikke tenk på sluttmålet — tenk bare på neste lille steg.',
-    emoji: '💪',
+    answer: 'Ikke tenk på sluttmålet alene — bryt det ned og fokuser på neste lille steg.',
+    encouragement: 'Du vet mer enn du tror. Begynn der du er.',
     irrelevantFact: 'Blekkspruter har tre hjerter. Du trenger bare ett for å lykkes.',
-  },
-  {
-    answer: (q) => `Svaret på "${q}" er 42 — men vi tror du var ute etter noe mer praktisk, og det er: bare gjør det!`,
-    encouragement: 'Perfeksjon er fienden til fremdrift. Bra nok i dag er bedre enn perfekt aldri.',
-    emoji: '🎯',
-    irrelevantFact: 'En snegl kan sove i opptil 3 år. Du har absolutt tid til å fullføre dette.',
-  },
-  {
-    answer: (q) => `"${q}" — vi spurte en botaniker, en rørlegger og en pensjonert astronaut. Alle tre sa: du greier det!`,
-    encouragement: 'Ta en dyp pust. Du vet mer enn du tror.',
-    emoji: '🌈',
-    irrelevantFact: 'Kleopatra levde nærmere i tid til iPhone enn til pyramidene. Historisk perspektiv: du har god tid.',
+    emoji: '💪',
   },
 ];
 
-askRouter.post('/', (req, res) => {
+async function callLLM(question: string): Promise<AskResponse> {
+  const apiKey = process.env.LLM_API_KEY;
+  const baseUrl = process.env.LLM_BASE_URL || 'https://api.openai.com/v1';
+
+  if (!apiKey) {
+    console.warn('⚠️  LLM_API_KEY not set — using fallback response');
+    return FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)];
+  }
+
+  const systemPrompt = `Du er HuMotivatoren, en humoristisk og varm norsk motivasjonscoach.
+  Brukeren stiller et spørsmål. Svar med:
+  - "answer": et motiverende svar på 1-2 setninger (kan være litt humoristisk)
+  - "encouragement": en kort oppmuntrende setning
+  - "irrelevantFact": en morsom og irrelevant faktaopplysning
+  - "emoji": ett relevant emoji
+  Svar KUN med gyldig JSON-objekt med disse fire feltene. Ingen markdown, ingen forklaring.`;
+
+  const response = await axios.post(
+    `${baseUrl}/chat/completions`,
+    {
+      model: process.env.LLM_MODEL || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: question },
+      ],
+      max_tokens: 300,
+      temperature: 0.85,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: 10_000,
+    },
+  );
+
+  const raw = response.data.choices?.[0]?.message?.content ?? '';
+  const parsed = JSON.parse(raw) as AskResponse;
+
+  // Validate required fields to prevent downstream errors
+  if (!parsed.answer || !parsed.encouragement || !parsed.irrelevantFact || !parsed.emoji) {
+    throw new Error('LLM response missing required fields');
+  }
+
+  return parsed;
+}
+
+askRouter.post('/', async (req, res) => {
   const { question } = req.body as AskRequest;
 
   if (!question || typeof question !== 'string' || question.trim().length === 0) {
@@ -61,23 +94,12 @@ askRouter.post('/', (req, res) => {
   }
 
   try {
-    const pick = MOTIVATIONAL_RESPONSES[
-      Math.floor(Math.random() * MOTIVATIONAL_RESPONSES.length)
-    ];
-
-    const response: AskResponse = {
-      answer: pick.answer(question.trim()),
-      encouragement: pick.encouragement,
-      irrelevantFact: pick.irrelevantFact,
-      emoji: pick.emoji,
-    };
-
+    const response = await callLLM(question.trim());
     res.json(response);
   } catch (error) {
     console.error('Error in /api/ask:', error);
-    res.status(500).json({
-      error: 'Noe gikk galt på serveren 😅',
-      code: 'INTERNAL_ERROR',
-    });
+    // Don't leak internal error details — use fallback instead of 500
+    const fallback = FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)];
+    res.json(fallback);
   }
 });
