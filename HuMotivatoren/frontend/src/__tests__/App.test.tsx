@@ -158,4 +158,19 @@ describe("App", () => {
     expect(screen.getByText(/Chaos Dashboard/i)).toBeInTheDocument();
     expect(await screen.findByText(/Gran Canaria/i)).toBeInTheDocument();
   });
+
+  it("auto-triggers motivation when selecting a category", async () => {
+    renderApp();
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "lese nyheter" } });
+    fireEvent.click(screen.getByRole("button", { name: "Sport Full energi" }));
+
+    await waitFor(() => {
+      expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+        "/api/motivate",
+        expect.objectContaining({
+          method: "POST",
+        }),
+      );
+    });
+  });
 });

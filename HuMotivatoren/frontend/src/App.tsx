@@ -90,16 +90,14 @@ function App() {
     }
   }, [task]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const triggerMotivation = async (nextPersonality: PersonalityOption = personality) => {
     if (!task.trim()) return;
 
     setLoading(true);
     setError(null);
-    setResult(null);
 
     try {
-      const request: MotivationRequest = { task: task.trim(), personality };
+      const request: MotivationRequest = { task: task.trim(), personality: nextPersonality };
       setLatestTask(task.trim());
 
       const response = await fetch('/api/motivate', {
@@ -119,6 +117,16 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await triggerMotivation();
+  };
+
+  const handlePersonalitySelect = async (nextPersonality: PersonalityOption) => {
+    setPersonality(nextPersonality);
+    await triggerMotivation(nextPersonality);
   };
 
   return (
@@ -306,7 +314,7 @@ function Home({
                 <button
                   key={value}
                   type="button"
-                  onClick={() => setPersonality(value)}
+                  onClick={() => handlePersonalitySelect(value)}
                   className={`home-personality ${personality === value ? 'active' : ''}`}
                 >
                   <strong>{label}</strong>
