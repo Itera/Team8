@@ -147,6 +147,7 @@ function App() {
             result={result}
             error={error}
             handleSubmit={handleSubmit}
+            handlePersonalitySelect={handlePersonalitySelect}
             catImageUrl={catImageUrl}
             catFact={catFact}
             catBreed={catBreed}
@@ -168,6 +169,7 @@ interface HomeProps {
   result: MotivationResponse | null;
   error: string | null;
   handleSubmit: (e: React.FormEvent) => void;
+  handlePersonalitySelect: (personality: PersonalityOption) => void;
   catImageUrl: string | null;
   catFact: string | null;
   catBreed: { name: string; temperament: string; description: string } | null;
@@ -184,6 +186,7 @@ function Home({
   result,
   error,
   handleSubmit,
+  handlePersonalitySelect,
   catImageUrl,
   catFact,
   catBreed,
