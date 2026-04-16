@@ -1,7 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { MotivationRequest, MotivationResponse } from './types';
 import { CowsayBubble } from './components/CowsayBubble';
 import { IrrelevantStats } from './components/IrrelevantStats';
+
+// Cat words in many languages
+const CAT_REGEX = /\b(cat|cats|kitten|kittens|kitty|kitties|katt|katten|katter|kattene|kattunge|kattungen|kattunger|kattungene|gato|gatos|gatito|gatitos|chat|chats|chaton|chatons|katze|katzen|kätzchen|gatto|gatti|gattino|kat|katte|killing|killingen|poes|poesje|kot|koty|kotek|kissa|kissoja|猫|貓|ねこ|قطة)\b/i;
+
+const QUOTES: Record<string, { content: string; author: string }[]> = {
+  silly: [
+    { content: "If at first you don't succeed, then skydiving definitely isn't for you.", author: "Steven Wright" },
+    { content: "The road to success is dotted with many tempting parking spaces.", author: "Will Rogers" },
+    { content: "People say nothing is impossible, but I do nothing every day.", author: "A.A. Milne" },
+    { content: "I always wanted to be somebody, but now I realize I should have been more specific.", author: "Lily Tomlin" },
+    { content: "The elevator to success is out of order. You'll have to use the stairs.", author: "Joe Girard" },
+  ],
+  serious: [
+    { content: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+    { content: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
+    { content: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+    { content: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+    { content: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+  ],
+  sports: [
+    { content: "You miss 100% of the shots you don't take.", author: "Wayne Gretzky" },
+    { content: "Champions keep playing until they get it right.", author: "Billie Jean King" },
+    { content: "It's not whether you get knocked down, it's whether you get up.", author: "Vince Lombardi" },
+    { content: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke" },
+    { content: "The more I practice, the luckier I get.", author: "Gary Player" },
+  ],
+  nerdy: [
+    { content: "First, solve the problem. Then, write the code.", author: "John Johnson" },
+    { content: "Any sufficiently advanced technology is indistinguishable from magic.", author: "Arthur C. Clarke" },
+    { content: "The best way to predict the future is to invent it.", author: "Alan Kay" },
+    { content: "Programs must be written for people to read, and only incidentally for machines to execute.", author: "Harold Abelson" },
+    { content: "Simplicity is the soul of efficiency.", author: "Austin Freeman" },
+  ],
+};
 
 type PersonalityOption = NonNullable<MotivationRequest['personality']>;
 
@@ -18,6 +52,42 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MotivationResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [catImageUrl, setCatImageUrl] = useState<string | null>(null);
+  const [catFact, setCatFact] = useState<string | null>(null);
+  const [catBreed, setCatBreed] = useState<{ name: string; temperament: string; description: string } | null>(null);
+  const [quotableQuote, setQuotableQuote] = useState<{ content: string; author: string } | null>(null);
+  const lastFetchedFor = useRef<string | null>(null);
+
+  useEffect(() => {
+    const hasCat = CAT_REGEX.test(task);
+    if (hasCat && lastFetchedFor.current !== task) {
+      lastFetchedFor.current = task;
+
+      // Fetch cat image + breed info
+      fetch('https://api.thecatapi.com/v1/images/search?has_breeds=1')
+        .then((r) => r.json())
+        .then((data: { url: string; breeds?: { name: string; temperament: string; description: string }[] }[]) => {
+          if (data?.[0]?.url) setCatImageUrl(data[0].url);
+          const breed = data?.[0]?.breeds?.[0];
+          if (breed) setCatBreed({ name: breed.name, temperament: breed.temperament, description: breed.description });
+        })
+        .catch(() => {});
+
+      // Fetch random cat fact
+      fetch('https://catfact.ninja/fact')
+        .then((r) => r.json())
+        .then((data: { fact: string }) => {
+          if (data?.fact) setCatFact(data.fact);
+        })
+        .catch(() => {});
+
+    } else if (!hasCat) {
+      setCatImageUrl(null);
+      setCatFact(null);
+      setCatBreed(null);
+      lastFetchedFor.current = null;
+    }
+  }, [task]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +96,11 @@ function App() {
     setLoading(true);
     setError(null);
     setResult(null);
+
+    // Pick a random local quote for the selected personality
+    const pool = QUOTES[personality];
+    const randomQuote = pool[Math.floor(Math.random() * pool.length)];
+    setQuotableQuote(randomQuote);
 
     try {
       const request: MotivationRequest = { task: task.trim(), personality };
@@ -48,38 +123,30 @@ function App() {
     }
   };
 
-  const CAT_EMOJIS = ['🐱', '🐈', '😸', '😻', '🐾', '😺', '🐈\u200D⬛'];
-
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: '#fce4f0',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       padding: '2rem',
       fontFamily: 'system-ui, -apple-system, sans-serif',
       position: 'relative',
       overflow: 'hidden'
     }}>
-      {/* Cat background layer */}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, 72px)',
-        gridAutoRows: '72px',
-        overflow: 'hidden',
-        pointerEvents: 'none',
-        zIndex: 0,
-        opacity: 0.22,
-      }}>
-        {Array.from({ length: 300 }).map((_, i) => (
-          <span key={i} style={{ fontSize: '2.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {CAT_EMOJIS[i % CAT_EMOJIS.length]}
-          </span>
-        ))}
-      </div>
+      {/* Real cat photo overlay when cat word is detected */}
+      {catImageUrl && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0,
+          width: '100%', height: '100%',
+          backgroundImage: `url(${catImageUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          opacity: 0.35,
+          pointerEvents: 'none',
+          zIndex: 0,
+          transition: 'opacity 0.6s ease',
+        }} />
+      )}
 
       <div style={{ 
         maxWidth: '800px', 
@@ -128,6 +195,37 @@ function App() {
 
             <CowsayBubble inputText={task} />
             <IrrelevantStats inputText={task} />
+
+            {/* Cat info card — appears as soon as a cat word is typed */}
+            {catImageUrl && (
+              <div style={{
+                background: 'rgba(255,255,255,0.92)',
+                borderRadius: '12px',
+                padding: '1.25rem 1.5rem',
+                marginBottom: '1rem',
+                textAlign: 'left',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                display: 'flex',
+                gap: '1.25rem',
+                alignItems: 'flex-start',
+              }}>
+                <img
+                  src={catImageUrl}
+                  alt="Søt katt"
+                  style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '10px', flexShrink: 0 }}
+                />
+                <div>
+                  {catBreed && (
+                    <>
+                      <p style={{ margin: '0 0 0.25rem', fontWeight: 'bold', color: '#764ba2', fontSize: '1rem' }}>🐱 {catBreed.name}</p>
+                      <p style={{ margin: '0 0 0.4rem', color: '#555', fontSize: '0.85rem' }}>🎭 {catBreed.temperament}</p>
+                      <p style={{ margin: '0 0 0.6rem', color: '#374151', fontSize: '0.9rem' }}>{catBreed.description}</p>
+                    </>
+                  )}
+                  {catFact && <p style={{ margin: 0, color: '#374151', fontSize: '0.9rem', fontStyle: 'italic' }}>💡 {catFact}</p>}
+                </div>
+              </div>
+            )}
             
             <div style={{ 
               display: 'flex', 
@@ -202,65 +300,58 @@ function App() {
               boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
               textAlign: 'left'
             }}>
-              <div style={{ 
-                fontSize: '4rem', 
-                textAlign: 'center', 
-                marginBottom: '1rem' 
-              }}>
+              <div style={{ fontSize: '4rem', textAlign: 'center', marginBottom: '1rem' }}>
                 {result.emoji}
-              </div>
-              
-              <div style={{ marginBottom: '1.5rem' }}>
-                <h2 style={{ 
-                  color: '#764ba2', 
-                  marginBottom: '0.5rem',
-                  fontSize: '1.2rem'
-                }}>
-                  💬 Sitat
-                </h2>
-                <p style={{ 
-                  fontSize: '1.3rem', 
-                  fontStyle: 'italic',
-                  margin: 0,
-                  color: '#374151'
-                }}>
-                  "{result.quote}"
-                </p>
               </div>
 
               <div style={{ marginBottom: '1.5rem' }}>
-                <h2 style={{ 
-                  color: '#764ba2', 
-                  marginBottom: '0.5rem',
-                  fontSize: '1.2rem'
-                }}>
-                  📚 Fakta
-                </h2>
+                <h2 style={{ color: '#764ba2', marginBottom: '0.5rem', fontSize: '1.2rem' }}>💬 Sitat</h2>
+                {quotableQuote ? (
+                  <>
+                    <p style={{ fontSize: '1.3rem', fontStyle: 'italic', margin: '0 0 0.4rem', color: '#374151' }}>
+                      "{quotableQuote.content}"
+                    </p>
+                    <p style={{ margin: 0, color: '#764ba2', fontWeight: 'bold', fontSize: '0.9rem' }}>— {quotableQuote.author}</p>
+                  </>
+                ) : (
+                  <p style={{ fontSize: '1.3rem', fontStyle: 'italic', margin: 0, color: '#374151' }}>"{result.quote}"</p>
+                )}
+              </div>
+
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h2 style={{ color: '#764ba2', marginBottom: '0.5rem', fontSize: '1.2rem' }}>📚 Fakta</h2>
                 <p style={{ margin: 0, color: '#374151' }}>{result.fact}</p>
               </div>
 
               <div style={{ marginBottom: '1.5rem' }}>
-                <h2 style={{ 
-                  color: '#764ba2', 
-                  marginBottom: '0.5rem',
-                  fontSize: '1.2rem'
-                }}>
-                  💡 Tips
-                </h2>
+                <h2 style={{ color: '#764ba2', marginBottom: '0.5rem', fontSize: '1.2rem' }}>💡 Tips</h2>
                 <p style={{ margin: 0, color: '#374151' }}>{result.tip}</p>
               </div>
 
-              {result.gifUrl && (
-                <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                  <img 
-                    src={result.gifUrl} 
-                    alt="Motiverende GIF" 
-                    style={{ 
-                      maxWidth: '100%', 
-                      borderRadius: '12px',
-                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-                    }} 
-                  />
+              {catImageUrl && (catBreed || catFact) && (
+                <div style={{ marginBottom: '1.5rem', background: '#fef9ff', borderRadius: '10px', padding: '1rem' }}>
+                  <h2 style={{ color: '#764ba2', marginBottom: '0.5rem', fontSize: '1.2rem' }}>🐱 Katte-fakta</h2>
+                  {catBreed && <p style={{ margin: '0 0 0.3rem', fontWeight: 'bold', color: '#555' }}>{catBreed.name} — {catBreed.temperament}</p>}
+                  {catFact && <p style={{ margin: 0, color: '#374151', fontStyle: 'italic' }}>{catFact}</p>}
+                </div>
+              )}
+
+              {(result.gifUrl || catImageUrl) && (
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem', flexWrap: 'wrap' }}>
+                  {result.gifUrl && (
+                    <img
+                      src={result.gifUrl}
+                      alt="Motiverende GIF"
+                      style={{ flex: '1 1 45%', maxWidth: '48%', minWidth: '200px', borderRadius: '12px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)', objectFit: 'cover' }}
+                    />
+                  )}
+                  {catImageUrl && (
+                    <img
+                      src={catImageUrl}
+                      alt="Søt katt fra The Cat API"
+                      style={{ flex: '1 1 45%', maxWidth: '48%', minWidth: '200px', borderRadius: '12px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)', objectFit: 'cover' }}
+                    />
+                  )}
                 </div>
               )}
             </div>
