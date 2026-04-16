@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getDevelopmentHistoryDetail } from "../services/api";
 import type { DevelopmentHistoryDetail } from "../types";
-import "../matrix.css";
+import "../bladerunner.css";
 
 /**
  * Minimal markdown-to-HTML renderer covering the subset used in change files:
@@ -162,41 +162,53 @@ export default function ChangeDetail() {
   }, [hash]);
 
   return (
-    <div className="matrix-page">
-      <div className="matrix-header">
-        <h1>development_history :: change</h1>
-        <p className="matrix-subtitle">
-          {">>"} hash: {hash}
+    <div className="bladerunner-page">
+      <div className="bladerunner-scanline" />
+      <header className="bladerunner-header">
+        <h1 className="bladerunner-title">change detail</h1>
+        <p className="bladerunner-subtitle">
+          ⚡ Hash: {hash} ⚡
         </p>
+        <nav className="bladerunner-nav">
+          <Link to="/development_history" className="bladerunner-nav-link">
+            📊 Back to History
+          </Link>
+          <Link to="/" className="bladerunner-nav-link">
+            🏠 Return to Home
+          </Link>
+        </nav>
+      </header>
+
+      <div className="bladerunner-container">
+        {loading && <p style={{ color: "var(--br-cyan)" }}>{">"} loading change...</p>}
+
+        {error && (
+          <p className="bladerunner-error">
+            {"[ERROR]"} {error}
+          </p>
+        )}
+
+        {!loading && !error && (
+          <div style={{ background: "rgba(0, 217, 255, 0.05)", border: "1px solid var(--br-border)", padding: "2rem" }}>
+            {entry && (
+              <div style={{ marginBottom: "1.5rem", paddingBottom: "1.5rem", borderBottom: "1px solid var(--br-border)" }}>
+                <h2 style={{ color: "var(--br-cyan)", fontSize: "1.5rem", margin: "0 0 0.5rem 0", textTransform: "uppercase" }}>
+                  {entry.title}
+                </h2>
+                <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap", fontSize: "0.9rem" }}>
+                  <div><span style={{ color: "var(--br-green)" }}>📅 Date:</span> {formatDate(entry.date)}</div>
+                  <div><span style={{ color: "var(--br-green)" }}>👤 Author:</span> {entry.author}</div>
+                  <div><span style={{ color: "var(--br-green)" }}>🔗 Hash:</span> {entry.hash}</div>
+                </div>
+              </div>
+            )}
+            <div
+              className="bladerunner-markdown"
+              dangerouslySetInnerHTML={{ __html: html ?? "" }}
+            />
+          </div>
+        )}
       </div>
-
-      <Link to="/development_history" className="matrix-back-link">
-        [back to history]
-      </Link>
-
-      {loading && <p className="matrix-loading">{">"} loading change...</p>}
-
-      {error && (
-        <p className="matrix-error">
-          {"[ERROR]"} {error}
-        </p>
-      )}
-
-      {!loading && !error && (
-        <div className="matrix-detail">
-          {entry && (
-            <div className="matrix-meta">
-              <span>{formatDate(entry.date)}</span>
-              <span>{entry.author}</span>
-              <span>{entry.hash}</span>
-            </div>
-          )}
-          <div
-            className="matrix-markdown"
-            dangerouslySetInnerHTML={{ __html: html ?? "" }}
-          />
-        </div>
-      )}
     </div>
   );
 }

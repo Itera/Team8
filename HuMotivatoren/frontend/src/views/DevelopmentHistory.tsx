@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getDevelopmentHistory } from "../services/api";
 import type { DevelopmentHistoryEntry } from "../types";
-import "../matrix.css";
+import "../bladerunner.css";
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -48,46 +48,48 @@ export default function DevelopmentHistory() {
   }, []);
 
   return (
-    <div className="matrix-page">
-      <div className="matrix-header">
-        <h1>development_history</h1>
-        <p className="matrix-subtitle">
-          {">>"} merge timeline :: {entries.length} entries :: source:
-          /api/development-history
+    <div className="bladerunner-page">
+      <div className="bladerunner-scanline" />
+      <header className="bladerunner-header">
+        <h1 className="bladerunner-title">development_history</h1>
+        <p className="bladerunner-subtitle">
+          ⚡ Merge Timeline :: {entries.length} entries ⚡
         </p>
+        <nav className="bladerunner-nav">
+          <Link to="/" className="bladerunner-nav-link">
+            🏠 Return to Home
+          </Link>
+        </nav>
+      </header>
+
+
+      <div className="bladerunner-container">
+        {loading && <p style={{ color: "var(--br-cyan)" }}>{">"} loading entries...</p>}
+
+        {error && (
+          <p className="bladerunner-error">
+            {"[ERROR]"} {error}
+          </p>
+        )}
+
+        {!loading && !error && (
+          <ul className="bladerunner-list" role="list">
+            {entries.map((entry) => (
+              <li key={entry.hash} className="bladerunner-list-item">
+                <Link
+                  to={`/development_history/${entry.hash}`}
+                  style={{ fontSize: "1.1rem", fontWeight: "bold" }}
+                >
+                  {entry.title}
+                </Link>
+                <div className="bladerunner-list-meta">
+                  📅 {formatDate(entry.date)} | 👤 {entry.author} | 🔗 {entry.hash}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-
-      <nav>
-        <Link to="/" className="matrix-back-link">
-          [back to main]
-        </Link>
-      </nav>
-
-      {loading && <p className="matrix-loading">{">"} loading entries...</p>}
-
-      {error && (
-        <p className="matrix-error">
-          {"[ERROR]"} {error}
-        </p>
-      )}
-
-      {!loading && !error && (
-        <ul className="matrix-list" role="list">
-          {entries.map((entry) => (
-            <li key={entry.hash} className="matrix-list-item">
-              <span className="matrix-date">{formatDate(entry.date)}</span>
-              <span className="matrix-author">{entry.author}</span>
-              <span className="matrix-hash">[{entry.hash}]</span>
-              <Link
-                to={`/development_history/${entry.hash}`}
-                className="matrix-entry-link"
-              >
-                {entry.title}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }

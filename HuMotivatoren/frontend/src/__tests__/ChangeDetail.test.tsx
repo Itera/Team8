@@ -65,7 +65,7 @@ describe("ChangeDetail", () => {
     renderWithHash("abc1234");
 
     expect(
-      screen.getByText(/development_history :: change/i),
+      screen.getByText(/change detail/i),
     ).toBeInTheDocument();
 
     await waitFor(() => {
@@ -107,20 +107,16 @@ describe("ChangeDetail", () => {
     renderWithHash("abc1234");
 
     await waitFor(() => {
-      const metaSpans = document.querySelectorAll(".matrix-meta span");
-      const authors = Array.from(metaSpans).map((s) => s.textContent);
-      expect(authors).toContain("alice");
+      expect(screen.getAllByText("alice").length).toBeGreaterThan(0);
     });
 
-    const metaSpans = document.querySelectorAll(".matrix-meta span");
-    const hashes = Array.from(metaSpans).map((s) => s.textContent);
-    expect(hashes).toContain("abc1234");
+    expect(screen.getAllByText("abc1234").length).toBeGreaterThan(0);
   });
 
   it("shows back link to history", async () => {
     renderWithHash("abc1234");
 
-    const link = screen.getByText(/\[back to history\]/i);
+    const link = screen.getByText(/Back to History/i);
     expect(link.closest("a")).toHaveAttribute("href", "/development_history");
 
     await waitFor(() => {
